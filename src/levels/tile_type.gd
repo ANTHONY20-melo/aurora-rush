@@ -17,13 +17,19 @@ enum Kind {
 }
 
 ## glyph -> tile definition
+##
+## `solid` and `one_way` are deliberately independent. A one-way platform is
+## NOT solid: it is transparent to horizontal movement and to anything moving
+## upward, and only becomes a surface for a body that is falling onto its top
+## edge. Marking it solid as well made it behave as an invisible wall, which
+## trapped the player under their own platforms.
 const TILES := {
-	".": {"kind": Kind.EMPTY,   "solid": false, "one_way": false, "slick": false, "hazard": false},
-	"#": {"kind": Kind.SOLID,   "solid": true,  "one_way": false, "slick": false, "hazard": false},
-	"=": {"kind": Kind.PLATFORM,"solid": true,  "one_way": true,  "slick": false, "hazard": false},
-	"~": {"kind": Kind.SLICK,   "solid": true,  "one_way": false, "slick": true,  "hazard": false},
-	"^": {"kind": Kind.HAZARD,  "solid": false, "one_way": false, "slick": false, "hazard": true},
-	"w": {"kind": Kind.LIQUID,  "solid": false, "one_way": false, "slick": false, "hazard": false},
+	".": {"kind": Kind.EMPTY,    "solid": false, "one_way": false, "slick": false, "hazard": false},
+	"#": {"kind": Kind.SOLID,    "solid": true,  "one_way": false, "slick": false, "hazard": false},
+	"=": {"kind": Kind.PLATFORM, "solid": false, "one_way": true,  "slick": false, "hazard": false},
+	"~": {"kind": Kind.SLICK,    "solid": true,  "one_way": false, "slick": true,  "hazard": false},
+	"^": {"kind": Kind.HAZARD,   "solid": false, "one_way": false, "slick": false, "hazard": true},
+	"w": {"kind": Kind.LIQUID,   "solid": false, "one_way": false, "slick": false, "hazard": false},
 }
 
 ## Object glyphs that place a gameplay entity and leave the tile EMPTY.
@@ -90,6 +96,14 @@ static func is_slick(glyph: String) -> bool:
 
 static func is_hazard(glyph: String) -> bool:
 	return bool(tile_info(glyph)["hazard"])
+
+
+## Can a body come to rest on this tile? True for solid ground and for
+## one-way platforms (which you can stand on), false for empty space and
+## hazards. Used by level validation and by "is there ground here" queries.
+static func is_standable(glyph: String) -> bool:
+	var info := tile_info(glyph)
+	return bool(info["solid"]) or bool(info["one_way"])
 
 
 static func object_kind(glyph: String) -> String:

@@ -6,13 +6,13 @@ extends RefCounted
 ## into an AudioStreamWAV from a small JSON recipe, which keeps the repository
 ## asset-free and legally clean while still producing real, layered audio.
 ##
-## A recipe is data:
+## A recipe is data. `type` is reserved for future generators and is not read
+## yet -- the wave/noise blend below fully determines the timbre.
 ##   {
-##     "type": "tone" | "noise" | "metal" | "music",
 ##     "wave": "sine" | "square" | "saw" | "triangle",
 ##     "freq_start": 440, "freq_end": 880,   // sweep, in Hz
 ##     "duration": 0.2,                       // seconds
-##     "attack": 0.005, "decay": 0.12,        // seconds
+##     "attack": 0.005, "decay": 0.12,        // decay = length of the release tail
 ##     "gain": 0.7, "noise": 0.0,             // noise mix 0..1
 ##     "pitch_drop": 0.0                      // extra downward sweep multiplier
 ##   }
@@ -211,7 +211,11 @@ static func music_from_definition(definition: Variant, sample_rate: int = 22050)
 		# Optional swing pushes every off-beath eighth later.
 		var swung_step_duration := step_duration * (1.0 + swing if step % 2 == 1 else 1.0 - swing)
 
-		var bass_freq: float = root_freq * pow(2.0, float(scale[last_bass_deg] * 12) / 12.0)
+		# A scale entry IS a semitone offset from the root, so the exponent is
+		# offset/12. Writing `offset * 12 / 12` here collapses to `2^offset`,
+		# which is one octave per semitone and turns every interval into a
+		# shriek -- keep the division.
+		var bass_freq: float = root_freq * pow(2.0, float(scale[last_bass_deg]) / 12.0)
 		bass_phase += bass_freq / float(sample_rate)
 		var bass_env: float = _envelope(into_step, swung_step_duration,
 			step_duration * 0.08, swung_step_duration * 0.7)
@@ -219,7 +223,7 @@ static func music_from_definition(definition: Variant, sample_rate: int = 22050)
 
 		if lead_enabled:
 			var lead_freq: float = root_freq * 4.0 \
-				* pow(2.0, float(scale[last_lead_deg] * 12) / 12.0)
+				* pow(2.0, float(scale[last_lead_deg]) / 12.0)
 			lead_phase += lead_freq / float(sample_rate)
 			var lead_env: float = _envelope(into_step, swung_step_duration,
 				step_duration * 0.12, swung_step_duration * 0.85)

@@ -171,7 +171,10 @@ func _generate_library() -> void:
 	if not DirAccess.dir_exists_absolute(sfx_dir):
 		return
 	for file_name in DirAccess.get_files_at(sfx_dir):
-		if not file_name.ends_with(".json"):
+		# `*.music.json` also ends with ".json", so it has to be excluded here or
+		# every music track gets re-rendered as a short one-shot and cached
+		# under a music id as garbage.
+		if not file_name.ends_with(".json") or file_name.ends_with(".music.json"):
 			continue
 		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(sfx_dir.path_join(file_name)))
 		if typeof(parsed) != TYPE_DICTIONARY:

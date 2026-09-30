@@ -249,7 +249,7 @@ func _has_support_below(point: Vector2) -> bool:
 			var cx: int = x + dx
 			if cx < 0 or cx >= width:
 				continue
-			if cx < grid[y].length() and TileType.is_solid(grid[y][cx]):
+			if cx < grid[y].length() and TileType.is_standable(grid[y][cx]):
 				return true
 	return false
 
