@@ -1,0 +1,28 @@
+# Godot
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+*.translation
+
+# Engine binary (not part of the repo)
+tools/godot/
+tools/*.exe
+
+# Godot Mono / C# (unused, but harmless to guard)
+.mono/
+data_*/
+mono_crash.*.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Build output
+build/
+dist/
+*.tmp
