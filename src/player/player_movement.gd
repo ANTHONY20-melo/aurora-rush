@@ -225,7 +225,13 @@ func _resolve_jump() -> void:
 		jump_started_this_frame = true
 		return
 
-	if jumps_used <= config.air_jumps:
+	# An air jump requires BOTH that air jumps are configured and that the ground
+	# jump has already been spent (jumps_used >= 1). Without the second check,
+	# `jumps_used <= config.air_jumps` reads 0 <= 0 as true, so walking off any
+	# ledge granted a free air jump even on a config with none.
+	var can_air_jump: bool = config.air_jumps > 0 \
+		and jumps_used >= 1 and jumps_used <= config.air_jumps
+	if can_air_jump:
 		body.velocity.y = config.double_jump_force
 		jumps_used += 1
 		_jump_buffer = 0.0
@@ -263,8 +269,6 @@ func _end_dash() -> void:
 	# Exit speed is a fraction of the dash speed, so dashing never banks a
 	# permanent free speed boost.
 	body.velocity.x = _dash_direction * config.dash_speed * config.dash_exit_speed_factor
-	if is_dashing:
-		is_dashing = false
 
 
 # --- gravity ----------------------------------------------------------------
@@ -273,24 +277,30 @@ func _apply_gravity(delta: float) -> void:
 	if is_dashing and config.dash_ignores_gravity:
 		return
 
-	var scale := 1.0
+	# Acceleration, not a multiplier. jump_hold_gravity is an absolute rate
+	# (px/s^2) tuned to be *weaker* than full gravity, so holding the button
+	# buys height. Treating it as a scale made gravity 2450 * 1750 px/s^2 and
+	# killed every jump inside a single frame.
+	var acceleration := config.gravity
 	if input.in_water:
-		scale = config.water_gravity_scale
+		acceleration = config.gravity * config.water_gravity_scale
 	elif body.velocity.y < 0.0:
 		# Rising: lighter while the button is held, so the player controls height.
-		scale = config.jump_hold_gravity if input.jump_held else 1.0
+		if input.jump_held:
+			acceleration = config.jump_hold_gravity
+		# Near the apex, gravity tapers so a jump does not snap to a stop.
 		if absf(body.velocity.y) < config.apex_speed_threshold:
-			scale = config.apex_gravity_scale
+			acceleration *= config.apex_gravity_scale
 	else:
-		scale = config.fall_gravity_scale
+		acceleration = config.gravity * config.fall_gravity_scale
 		if absf(body.velocity.y) < config.apex_speed_threshold:
-			scale = config.apex_gravity_scale
+			acceleration *= config.apex_gravity_scale
 
 	if body.on_ramp and body.floor_angle < 0.0 and body.velocity.x < 0.0:
 		# Climbing: slightly heavier so ramps have weight.
-		scale *= config.slope_gravity_scale
+		acceleration *= config.slope_gravity_scale
 
-	body.velocity.y = minf(body.velocity.y + config.gravity * scale * delta, config.max_fall_speed)
+	body.velocity.y = minf(body.velocity.y + acceleration * delta, config.max_fall_speed)
 
 
 # --- integration ------------------------------------------------------------
@@ -389,7 +399,10 @@ func dash_cooldown_ratio() -> float:
 
 
 func can_jump() -> bool:
-	return _coyote_timer > 0.0 or jumps_used <= config.air_jumps
+	var can_ground: bool = _coyote_timer > 0.0 and jumps_used == 0
+	var can_air: bool = config.air_jumps > 0 \
+		and jumps_used >= 1 and jumps_used <= config.air_jumps
+	return can_ground or can_air
 
 
 func jump_charges_left() -> int:

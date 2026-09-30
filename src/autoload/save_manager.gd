@@ -145,6 +145,13 @@ func set_current_level(level_id: String) -> void:
 	_dirty = true
 
 
+## Par times for the level being played, used by Ranking.compute_rank when the
+## run ends. GameManager pushes them in at run start; without this the rank would
+## silently fall back to the built-in defaults instead of the level's own par.
+func set_target_ranks(level_id: String, ranks: Dictionary) -> void:
+	data.set_target_ranks(level_id, ranks)
+
+
 func set_lives(lives: int) -> void:
 	data.lives = clampi(lives, 0, data.max_lives)
 	_dirty = true

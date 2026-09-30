@@ -310,6 +310,68 @@ func test_wall_ahead_detects_a_wall() -> void:
 
 # --- contact bookkeeping ----------------------------------------------------
 
+func test_resting_body_keeps_ground_contact_every_frame() -> void:
+	# Regression: a body resting on a floor sits a SKIN above it, so its AABB is
+	# flush with the tile and does not overlap it. Without a contact probe the
+	# body reported leaving the floor every single frame, which silently broke
+	# coyote time, jump charges and landing handling.
+	var grid := World.flat_ground(40, 12, 3)
+	var body := World.player_body()
+	body.teleport(World.standing_on(body, 2.5, 12))
+	World.settle(body, grid)
+
+	for i in 120:
+		body.move(grid, DT)
+		assert_true(body.on_floor, "frame %d: a resting body stays grounded" % i)
+		assert_false(body.just_left_floor, "frame %d: and never reports leaving" % i)
+
+
+func test_resting_body_is_not_pushed_through_the_floor() -> void:
+	# Regression: with zero vertical velocity the solver used to take the ceiling
+	# branch, snapping the body to tile_bottom + half_height and dropping it out
+	# of the level entirely.
+	var grid := World.flat_ground(40, 12, 3)
+	var body := World.player_body()
+	body.teleport(World.standing_on(body, 2.5, 12))
+	World.settle(body, grid)
+	var resting_y := body.position.y
+	World.run(body, grid, 120)
+	assert_approx(body.position.y, resting_y, 0.5,
+		"a resting body holds its height and is not ejected downward")
+
+
+func test_resting_body_keeps_wall_contact() -> void:
+	# Same skin probe, horizontal axis: a body standing still against a wall must
+	# keep reporting it, otherwise wall detection flickers frame to frame.
+	var rows: Array = []
+	for y in 14:
+		var row := ".".repeat(30)
+		if y >= 8 and y < 13:
+			row = World._place(row, 12, "#")
+		rows.append(row)
+	rows.append("#".repeat(30))
+	rows.append("#".repeat(30))
+	var grid := World.make_grid(rows)
+
+	var body := World.player_body()
+	# Flush against the wall on its RIGHT: right_x() == 384, the wall's left
+	# edge. Standing on the floor so the body is genuinely at rest.
+	var rest_y := World.standing_on(body, 0.0, 13).y
+	body.teleport(Vector2(12.0 * TILE - body.half_size().x, rest_y))
+	body.move(grid, DT)
+	body.velocity.x = 0.0
+	var resting_x := body.position.x
+
+	var lost := 0
+	for _i in 60:
+		body.move(grid, DT)
+		if not body.on_wall_right:
+			lost += 1
+	assert_eq(lost, 0, "wall contact persists while the body rests against it")
+	assert_approx(body.position.x, resting_x, 0.5,
+		"and the body is not shoved sideways by the contact")
+
+
 func test_just_landed_is_reported_exactly_once() -> void:
 	var grid := World.flat_ground(40, 12, 3)
 	var body := World.player_body()
@@ -325,6 +387,31 @@ func test_just_landed_is_reported_exactly_once() -> void:
 			leave_events += 1
 	assert_eq(landings, 1, "landing is reported once, not every frame it rests")
 	assert_eq(leave_events, 0, "a resting body never reports leaving the floor")
+
+
+func test_just_left_floor_is_reported_when_the_body_leaves_ground() -> void:
+	# Regression: `was_grounded` used to be captured AFTER the contacts were
+	# reset, which made it permanently false and left just_left_floor as dead
+	# code. A suite that only asserted `leave_events == 0` would pass happily
+	# against that bug, so this case asserts the event actually fires.
+	var grid := World.flat_ground(60, 10, 3)
+	var body := World.player_body()
+	body.teleport(World.standing_on(body, 3.0, 10))
+	World.settle(body, grid)
+	assert_true(body.on_floor, "the body starts on the floor")
+
+	# Upward velocity, which is exactly what a jump hands the collision solver.
+	# Downward velocity would simply be absorbed back into the floor.
+	World.launch(body, Vector2(0.0, -300.0))
+
+	var left_events := 0
+	for _i in 60:
+		body.move(grid, DT)
+		if body.just_left_floor:
+			left_events += 1
+			break
+	assert_eq(left_events, 1, "leaving the floor is reported exactly once")
+	assert_false(body.on_floor, "and the body is genuinely airborne")
 
 
 func test_landing_reports_the_impact_speed() -> void:

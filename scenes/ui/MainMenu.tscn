@@ -1,0 +1,69 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0aurorarushmainmenu"]
+
+[ext_resource type="Script" path="res://scenes/ui/main_menu.gd" id="1_menu"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.055, 0.071, 0.11, 1)
+
+[node name="Center" type="CenterContainer" parent="Background"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Column" type="VBoxContainer" parent="Background/Center"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Background/Center/Column"]
+layout_mode = 2
+text = "AURORA RUSH"
+
+[node name="Tagline" type="Label" parent="Background/Center/Column"]
+layout_mode = 2
+text = "Velocidade. Precisao. Exploracao."
+
+[node name="Gap" type="Control" parent="Background/Center/Column"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+
+[node name="Buttons" type="VBoxContainer" parent="Background/Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Play" type="Button" parent="Background/Center/Column/Buttons"]
+custom_minimum_size = Vector2(260, 46)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "JOGAR"
+
+[node name="Quit" type="Button" parent="Background/Center/Column/Buttons"]
+custom_minimum_size = Vector2(260, 46)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "SAIR"
+
+[node name="Gap2" type="Control" parent="Background/Center/Column"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+
+[node name="Status" type="Label" parent="Background/Center/Column"]
+layout_mode = 2

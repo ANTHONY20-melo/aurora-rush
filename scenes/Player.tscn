@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0aurorarushplayer"]
+
+[ext_resource type="Script" path="res://src/player/player_controller.gd" id="1_controller"]
+
+[node name="Player" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_controller")
+
+[node name="Visual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-11, -15, 11, -15, 11, 15, -11, 15)
+color = Color(0.36, 0.87, 1, 1)
+
+[node name="Camera" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0

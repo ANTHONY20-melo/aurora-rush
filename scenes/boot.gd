@@ -16,6 +16,7 @@ const STAGES: Array[Dictionary] = [
 @onready var _title: Label = $Center/Column/Title
 @onready var _subtitle: Label = $Center/Column/Subtitle
 @onready var _status: Label = $Center/Column/Status
+@onready var _bar_bg: ColorRect = $Center/Column/Bar/Background
 @onready var _bar_fill: ColorRect = $Center/Column/Bar/Fill
 @onready var _report: Label = $Center/Column/Report
 
@@ -33,7 +34,9 @@ func _setup_visuals() -> void:
 	_configure($Center/Column/Status, 15, Color(0.72, 0.82, 0.90))
 	_configure($Center/Column/Report, 12, Color(0.95, 0.62, 0.45))
 	_bar_fill.color = Color(0.49, 0.90, 1.0)
-	($Center/Column/Bar as Control).modulate = Color(1, 1, 1, 0.25)
+	# Dim the trough only. Setting modulate on the Bar itself would tint the
+	# Fill too, since modulate propagates down the whole subtree.
+	_bar_bg.color = Color(0.16, 0.24, 0.34, 0.85)
 
 
 func _configure(label: Label, size: int, color: Color) -> void:
@@ -78,12 +81,13 @@ func _set_progress(value: float) -> void:
 
 
 func _update_bar() -> void:
-	if _bar_fill != null:
-		_bar_fill.size.x = _bar_fill.size.x  # keep reference alive for clarity
-		var bar := _bar_fill.get_parent() as Control
-		if bar != null:
-			_bar_fill.position.x = 0
-			_bar_fill.size.x = bar.size.x * _progress
+	if _bar_fill == null:
+		return
+	var bar := _bar_fill.get_parent() as Control
+	if bar == null:
+		return
+	_bar_fill.position.x = 0.0
+	_bar_fill.size.x = bar.size.x * _progress
 
 
 ## Content problems are surfaced, never hidden. A broken level file should be

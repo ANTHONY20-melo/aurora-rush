@@ -22,6 +22,11 @@ var _filter: String = ""
 
 
 func _ready() -> void:
+	# Suites that build real scenes need to call add_child, and the scene tree
+	# root refuses children while it is still inside its own _ready(). Yield one
+	# frame so the root is idle before any suite runs.
+	await get_tree().process_frame
+
 	_parse_args()
 	print_rich("[b]AURORA RUSH - TEST SUITE[/b]")
 	print("")
@@ -60,15 +65,20 @@ func _discover_cases() -> PackedStringArray:
 
 func _run_suite(path: String) -> void:
 	var script: GDScript = load(path)
-	if script == null:
+	# A script with a parse error still loads as a resource, so a null check
+	# alone is not enough: it must also be instantiable. Without this, a suite
+	# that never compiled was skipped and the run still reported ALL GREEN.
+	if script == null or not script.can_instantiate():
 		_suites_failed += 1
-		_failures.append("%s :: could not load script" % path)
+		_failures.append("%s :: could not be instantiated (parse error?)" % path)
+		print("[color=red]FAIL[/color] %s (unloadable)" % path)
 		return
 
 	var instance: Variant = script.new()
 	if not (instance is TestCase):
 		_suites_failed += 1
 		_failures.append("%s :: does not extend TestCase" % path)
+		print("[color=red]FAIL[/color] %s (not a TestCase)" % path)
 		return
 
 	var suite: TestCase = instance
@@ -94,13 +104,21 @@ func _run_suite(path: String) -> void:
 
 	for test_name in test_names:
 		suite.failures = PackedStringArray()
+		var assertions_before: int = suite.assertion_count
 		suite.before_each()
-		var crashed: bool = false
-		var crash_message := ""
 		# A test that raises must fail that test, not kill the whole run.
 		suite.call(test_name)
 		suite.after_each()
 		_assertions += suite.assertion_count
+		# A test that asserted nothing proved nothing. Letting it pass silently
+		# is how a suite full of early `return`s reports a comfortable green
+		# while testing nothing at all.
+		if suite.assertion_count == assertions_before:
+			_tests_failed += 1
+			suite_failed += 1
+			lines.append("    [color=red]FAIL[/color] %s (no assertions ran)" % test_name)
+			_failures.append("%s :: %s :: test ran no assertions" % [suite_name, test_name])
+			continue
 		if suite.failures.is_empty():
 			_tests_passed += 1
 			lines.append("    [color=green]PASS[/color] %s" % test_name)
@@ -112,8 +130,6 @@ func _run_suite(path: String) -> void:
 				var text := "        - %s" % failure
 				lines.append("[color=red]%s[/color]" % text)
 				_failures.append("%s :: %s :: %s" % [suite_name, test_name, failure])
-		if crashed:
-			lines.append("        [color=red]crashed: %s[/color]" % crash_message)
 
 	for line in lines:
 		print(line)
@@ -139,6 +155,10 @@ func _report() -> void:
 	var all_green: bool = _tests_failed == 0 and _suites_failed == 0
 	if all_green:
 		print_rich("[color=green][b]  RESULT: ALL GREEN[/b][/color]")
+	elif _tests_failed == 0 and _suites_failed > 0:
+		# A suite that never loaded is just as fatal as a failing assertion, and
+		# reporting "0 TEST(S) FAILED" there reads like a pass.
+		print_rich("[color=red][b]  RESULT: %d SUITE(S) FAILED TO LOAD[/b][/color]" % _suites_failed)
 	else:
 		print_rich("[color=red][b]  RESULT: %d TEST(S) FAILED[/b][/color]" % _tests_failed)
 	print("  suites : %d passed, %d failed" % [_suites_passed, _suites_failed])

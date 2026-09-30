@@ -191,18 +191,27 @@ func validate() -> PackedStringArray:
 		problems.append("max_air_speed must not exceed max_speed")
 	if jump_force >= 0.0:
 		problems.append("jump_force must be negative (upward)")
-	if not (0.0 < jump_cut_multiplier <= 1.0):
+	if not _is_unit_range(jump_cut_multiplier):
 		problems.append("jump_cut_multiplier must be in (0, 1]")
 	if max_fall_speed <= max_speed:
 		problems.append("max_fall_speed must exceed max_speed")
-	if not (0.0 < dash_exit_speed_factor <= 1.0):
+	if not _is_unit_range(dash_exit_speed_factor):
 		problems.append("dash_exit_speed_factor must be in (0, 1]")
 	if coyote_time < 0.0 or jump_buffer_time < 0.0:
 		problems.append("coyote_time and jump_buffer_time cannot be negative")
-	if not (0.0 < apex_gravity_scale <= 1.0):
+	if not _is_unit_range(apex_gravity_scale):
 		problems.append("apex_gravity_scale must be in (0, 1]")
-	if not (0.0 < water_speed_scale <= 1.0):
+	if not _is_unit_range(water_speed_scale):
 		problems.append("water_speed_scale must be in (0, 1]")
 	if max_walkable_slope <= 0.0 or max_walkable_slope >= PI * 0.5:
 		problems.append("max_walkable_slope must be in (0, 90 degrees)")
 	return problems
+
+
+## True for values in the half-open range (0, 1].
+##
+## GDScript has no chained comparison operators: writing `0.0 < value <= 1.0`
+## parses as `(0.0 < value) <= 1.0`, comparing a bool against a float and
+## failing to compile. Every range check goes through this helper instead.
+func _is_unit_range(value: float) -> bool:
+	return value > 0.0 and value <= 1.0

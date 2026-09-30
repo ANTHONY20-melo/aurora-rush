@@ -119,6 +119,10 @@ func _reset_contacts() -> void:
 ## whenever a wall was hit -- movement code needs that to know a dash was
 ## interrupted rather than assuming it completed.
 func move(grid: LevelData, delta: float) -> float:
+	# The previous frame's contact state must be captured BEFORE the contacts are
+	# reset, otherwise `was_grounded` is always false and the just_landed /
+	# just_left_floor edge events can never fire correctly.
+	var was_grounded := is_grounded()
 	_reset_contacts()
 	just_landed = false
 	just_left_floor = false
@@ -127,7 +131,6 @@ func move(grid: LevelData, delta: float) -> float:
 	if frozen or not enabled or grid == null or delta <= 0.0:
 		return 0.0
 
-	var was_grounded := is_grounded()
 	var fall_before := velocity.y
 
 	# Sub-step so a fast body cannot cross a whole tile in one integration.
@@ -154,39 +157,79 @@ func move(grid: LevelData, delta: float) -> float:
 # --- X axis -----------------------------------------------------------------
 
 func _integrate_x(grid: LevelData, dx: float) -> void:
-	if is_zero_approx(dx):
-		return
-	position.x += dx
+	# Not an early return: a body standing perfectly still against a wall must
+	# keep reporting the contact, otherwise wall detection flickers off.
+	var moving := not is_zero_approx(dx)
+	if moving:
+		position.x += dx
 
-	var body := rect()
-	var b := AABB2.tile_bounds(body, TILE)
+	# Same skin probe as the Y axis. With no horizontal movement the probe grows
+	# both ways, since a stationary body may be touching a wall on either side.
+	var body_rect := rect()
+	var probe := body_rect
+	if dx > 0.0:
+		probe.size.x += SKIN * 2.0
+	elif dx < 0.0:
+		probe.position.x -= SKIN * 2.0
+		probe.size.x += SKIN * 2.0
+	else:
+		probe.position.x -= SKIN * 2.0
+		probe.size.x += SKIN * 4.0
+
+	var b := AABB2.tile_bounds(probe, TILE)
 	for ty in range(b.y, b.w + 1):
 		for tx in range(b.x, b.z + 1):
 			if not grid.tile_is_solid(tx, ty):
 				continue
 			var tile_rect := AABB2.tile_rect(tx, ty, TILE)
-			if not AABB2.overlaps(body, tile_rect):
+			if not AABB2.overlaps(probe, tile_rect):
 				continue
+			if moving:
+				velocity.x = 0.0
 			if dx > 0.0:
-				position.x = tile_rect.position.x - half_size().x - SKIN
 				on_wall_right = true
-			else:
-				position.x = tile_rect.end.x + half_size().x + SKIN
+				if moving:
+					position.x = tile_rect.position.x - half_size().x - SKIN
+			elif dx < 0.0:
 				on_wall_left = true
-			velocity.x = 0.0
+				if moving:
+					position.x = tile_rect.end.x + half_size().x + SKIN
+			else:
+				# Stationary against a wall: report which side, but never
+				# reposition. Snapping here would shove a still body sideways.
+				if tile_rect.position.x >= body_rect.end.x:
+					on_wall_right = true
+				else:
+					on_wall_left = true
 			return
 
 
 # --- Y axis -----------------------------------------------------------------
 
 func _integrate_y(grid: LevelData, dy: float) -> void:
-	if is_zero_approx(dy):
-		return
+	# Captured before the move so one-way platforms can tell which side the body
+	# came from.
 	var previous_feet := feet_y()
-	position.y += dy
+	var moving := not is_zero_approx(dy)
+	if moving:
+		position.y += dy
 
-	var body := rect()
-	var b := AABB2.tile_bounds(body, TILE)
+	# A body resting on a surface sits a SKIN above it, so its AABB is flush with
+	# the tile edge and technically does NOT overlap the tile. Without a probe
+	# band a resting body reports losing floor contact every single frame, which
+	# makes coyote time, jump charges and landing all misbehave.
+	#
+	# Direction matters: only a RISING body probes upward for a ceiling. A
+	# falling or resting body probes downward, because that is where its floor is.
+	# Extending the wrong way leaves end.y unchanged and finds nothing at all.
+	var probe := rect()
+	if dy < 0.0:
+		probe.position.y -= SKIN * 2.0
+		probe.size.y += SKIN * 2.0
+	else:
+		probe.size.y += SKIN * 2.0
+
+	var b := AABB2.tile_bounds(probe, TILE)
 	for ty in range(b.y, b.w + 1):
 		for tx in range(b.x, b.z + 1):
 			# One-way platforms are resolved first and exclusively. They are not
@@ -208,19 +251,32 @@ func _integrate_y(grid: LevelData, dy: float) -> void:
 
 			if not grid.tile_is_solid(tx, ty):
 				continue
-			if not AABB2.overlaps(body, AABB2.tile_rect(tx, ty, TILE)):
+			if not AABB2.overlaps(probe, AABB2.tile_rect(tx, ty, TILE)):
 				continue
 
 			var tile_rect := AABB2.tile_rect(tx, ty, TILE)
 			if dy > 0.0:
-				position.y = tile_rect.position.y - half_size().y - SKIN
 				on_floor = true
 				if grid.tile_is_slick(tx, ty):
 					on_slick = true
-			else:
-				position.y = tile_rect.end.y + half_size().y + SKIN
+				if moving:
+					position.y = tile_rect.position.y - half_size().y - SKIN
+			elif dy < 0.0:
 				on_ceiling = true
-			velocity.y = 0.0
+				if moving:
+					position.y = tile_rect.end.y + half_size().y + SKIN
+			else:
+				# Resting on the floor: report contact, but never reposition.
+				# Treating a stationary body as "rising" would snap it through
+				# the tile to the ceiling branch and drop it out of the level.
+				if tile_rect.position.y >= probe.end.y - SKIN * 2.0:
+					on_floor = true
+					if grid.tile_is_slick(tx, ty):
+						on_slick = true
+				else:
+					on_ceiling = true
+			if moving:
+				velocity.y = 0.0
 			return
 
 

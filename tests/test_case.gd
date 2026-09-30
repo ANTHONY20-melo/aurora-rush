@@ -85,10 +85,25 @@ func assert_has_method(target: Object, method: String, message: String = "") -> 
 
 
 func assert_empty(collection: Variant, message: String = "") -> void:
-	var size: int = -1
-	if collection is Array or collection is Dictionary or collection is PackedStringArray:
-		size = collection.size()
+	var size := _collection_size(collection)
 	ok(size == 0, _prefix("expected empty collection, size=%d" % size) + _with_context(message))
+
+
+## Inverse of assert_empty. Written as its own assertion rather than
+## `not assert_empty(...)` so a failure report reads as a real expectation
+## instead of a double negative.
+func assert_not_empty(collection: Variant, message: String = "") -> void:
+	var size := _collection_size(collection)
+	ok(size > 0, _prefix("expected non-empty collection, size=%d" % size) + _with_context(message))
+
+
+## Element count, or -1 for a type this harness does not know how to measure.
+## An unknown type must fail the assertion, never silently pass.
+func _collection_size(collection: Variant) -> int:
+	if collection is Array or collection is Dictionary \
+			or collection is PackedStringArray or collection is String:
+		return collection.size()
+	return -1
 
 
 func _prefix(message: String) -> String:

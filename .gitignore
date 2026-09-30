@@ -2,8 +2,11 @@
 .godot/
 .import/
 export.cfg
-export_presets.cfg
 *.translation
+
+# export_presets.cfg is intentionally NOT ignored: it is the build definition.
+# There are no signing keys or passwords in it, and losing it makes the build
+# unreproducible.
 
 # Engine binary (not part of the repo)
 tools/godot/
