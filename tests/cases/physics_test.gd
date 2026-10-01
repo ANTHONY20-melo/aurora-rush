@@ -547,10 +547,12 @@ func test_no_launch_at_ramp_top() -> void:
 	var ramp := World.make_ramp(Vector2(0.0, 0.0), 128.0, 64.0)
 	body.ramps.append(ramp)
 	
-	# Place body just past ramp end, slightly above floor; give small downward vel to settle
-	body.teleport(Vector2(130.0, -5.0))
-	body.velocity = Vector2(0.0, 50.0)  # small downward velocity to trigger landing
-	body.move(grid, DT)
+	# Place body just past ramp end, above floor; give downward velocity to fall
+	body.teleport(Vector2(130.0, -20.0))
+	body.velocity = Vector2(0.0, 300.0)  # downward velocity to fall onto floor
+	World.settle(body, grid)
+	
+	# Now move horizontally past the ramp end
 	body.velocity = Vector2(0.0, 0.0)
 	body.move(grid, DT)
 	assert_true(body.on_floor, "body is grounded on flat floor after ramp")
@@ -593,8 +595,9 @@ func test_ramp_up_left_works() -> void:
 	ramp.configure(Vector2(0.0, 0.0), 128.0, 64.0, RampCollider.Direction.UP_LEFT)
 	body.ramps.append(ramp)
 	# UP_LEFT: surface at x=128 is y=64, at x=0 is y=0
-	# Place slightly left of right end (x=120), surface Y = 64 - 8/128*64 = 60
-	body.teleport(Vector2(120.0, 60.0 - body.half_size().y))
+	# Place at x=60 (mid-ramp), surface Y = 64 - 60/128*64 = 32
+	body.teleport(Vector2(60.0, 32.0 - body.half_size().y))
+	body.velocity = Vector2(-50.0, 0.0)  # move left to engage ramp
 	body.move(World.flat_ground(40, 12, 3), DT)
 	assert_true(body.on_ramp, "UP_LEFT ramp also works")
 	# Angle should be negative (rising to the left)
