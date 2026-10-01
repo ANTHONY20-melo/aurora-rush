@@ -102,6 +102,20 @@ static func player_body() -> KinematicBody:
 	return body
 
 
+## A RampCollider configured as a right triangle rising to the right (UP_RIGHT)
+## or left (UP_LEFT). `base` is the bottom-left of the ramp's bounding box.
+static func make_ramp(base: Vector2, width: float = 128.0, height: float = 64.0,
+		direction: int = RampCollider.Direction.UP_RIGHT, slick: bool = false) -> RampCollider:
+	var ramp := RampCollider.new()
+	ramp.configure(base, width, height, RampCollider.Direction.UP_RIGHT, slick)
+	return ramp
+
+
+## Attach a ramp to a KinematicBody for testing.
+static func add_ramp(body: KinematicBody, ramp: RampCollider) -> void:
+	body.ramps.append(ramp)
+
+
 ## Centre position that puts a body's feet exactly on top of tile row
 ## `floor_y`. Use this instead of hand-picking coordinates: guessing a resting
 ## Y is the single easiest way to write a collision test that silently

@@ -28,6 +28,11 @@ var _was_jump_down: bool = false
 var _was_dash_down: bool = false
 var _was_attack_down: bool = false
 
+# External input (e.g., from TouchControls). If set, _read_input uses it
+# instead of reading Godot's Input singleton.
+var _external_input: PlayerInput = null
+
+
 # Camera shake
 var _shake_timer: float = 0.0
 var _shake_magnitude: float = 0.0
@@ -84,9 +89,26 @@ func _physics_process(delta: float) -> void:
 	_sync_visual()
 
 
-## One frame of intent. Edge detection lives here because only a node that
-## survives between frames can know what the previous frame looked like.
+func _on_touch_input(input: PlayerInput) -> void:
+	_external_input = input
+
+
+## One frame of intent. If external input (touch) is provided, use it.
+## Otherwise read from Godot's Input singleton.
 func _read_input() -> PlayerInput:
+	if _external_input != null:
+		# If external input has any activity, use it. If it's all idle,
+		# treat as no touch and fall back to keyboard/gamepad.
+		if _external_input.move_x != 0.0 \
+			or _external_input.jump_held \
+			or _external_input.dash_pressed \
+			or _external_input.attack_pressed \
+			or _external_input.jump_pressed \
+			or _external_input.jump_released:
+			return _external_input
+		# Touch ended (all idle) -> clear and fall back.
+		_external_input = null
+
 	var axis := Input.get_axis("move_left", "move_right")
 	var jump_down := Input.is_action_pressed("jump")
 	var dash_down := Input.is_action_pressed("dash")

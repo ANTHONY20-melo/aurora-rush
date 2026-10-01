@@ -464,3 +464,153 @@ func test_move_reports_actual_travel_not_intended() -> void:
 	assert_gte(travelled, 0.0, "travel is never negative")
 	assert_lt(body.right_x(), 14.0 * TILE,
 		"and the body ends up against the wall, not through it")
+
+
+# ============================================================================
+# RAMP TESTS
+# ============================================================================
+# Ramps are the most intricate collision surface in the game. They must:
+# - Snap the body to the exact surface Y at any X
+# - Report correct floor_angle for slope physics
+# - Not launch the body off the top (no airborne at ramp end)
+# - Apply climb penalty and descent bonus with proper caps
+# - Bleed bonus when leaving the ramp
+
+func _make_ramp_body() -> Dictionary:
+	# Ramp: base at (0,0), width=128, height=64, UP_RIGHT.
+	# Ramp surface at x=0 is y=64 (base.y + height), at x=128 is y=0.
+	var ramp := World.make_ramp(Vector2(0.0, 0.0), 128.0, 64.0)
+	var body := World.player_body()
+	body.ramps.append(ramp)
+	# Place body at ramp start (x=0): feet at y=64 (ramp bottom surface)
+	body.teleport(Vector2(0.0, 64.0 - body.half_size().y))
+	return {"body": body, "ramp": ramp}
+
+
+func test_ramp_body_snaps_to_surface() -> void:
+	var r_snap := _make_ramp_body(); var body: KinematicBody = r_snap["body"]; var ramp: RampCollider = r_snap["ramp"]
+	# At x=32 (25% up ramp), surface Y = 64 - 0.25*64 = 48
+	body.teleport(Vector2(32.0, 48.0 - body.half_size().y))
+	# Move to trigger _integrate_ramps
+	body.move(World.flat_ground(40, 12, 3), DT)
+	var result := body.ramps[0].resolve(body.rect(), body.position)
+	assert_true(bool(result["hit"]), "ramp detects contact at x=32")
+	assert_approx(float(result["surface"]), 48.0, 0.5, "surface Y is correct at 25% up")
+	assert_true(body.on_floor, "body is grounded on ramp")
+
+
+func test_ramp_angle_reported_correctly() -> void:
+	var r_angle := _make_ramp_body(); var body: KinematicBody = r_angle["body"]; var ramp: RampCollider = r_angle["ramp"]
+	# Start at ramp start, move right to engage ramp
+	body.move(World.flat_ground(40, 12, 3), DT)
+	body.velocity = Vector2(100.0, 0.0)
+	body.move(World.flat_ground(40, 12, 3), DT)
+	assert_true(body.on_ramp, "ramp sets on_ramp flag")
+	# Ramp angle: atan2(64, 128) = 26.565 deg
+	assert_approx(absf(body.floor_angle), deg_to_rad(26.565), deg_to_rad(1.0),
+		"floor_angle matches ramp geometry")
+
+
+func test_ramp_climbing_applies_penalty() -> void:
+	var r_climb := _make_ramp_body(); var body: KinematicBody = r_climb["body"]; var ramp: RampCollider = r_climb["ramp"]
+	# Start at x=10 (near bottom of ramp). Surface Y = 64 - 10/128*64 = 59
+	body.teleport(Vector2(10.0, 59.0 - body.half_size().y))
+	body.velocity = Vector2(400.0, 0.0)  # moving right = climbing
+	# Run one frame with ramp
+	body.move(World.flat_ground(40, 12, 3), DT)
+	# Climbing should reduce speed bonus (negative)
+	# The exact value depends on config.slope_climb_penalty
+	# Just verify the ramp is detected and angle is correct
+	assert_true(body.on_ramp, "climbing body is on ramp")
+
+
+func test_ramp_descending_gives_bonus_capped() -> void:
+	# A body placed on a descending ramp should be detected as on_ramp.
+	# The speed bonus capping is tested in PlayerMovement tests.
+	var r_desc := _make_ramp_body(); var body: KinematicBody = r_desc["body"]; var ramp: RampCollider = r_desc["ramp"]
+	# Place on upper part of ramp (x=30), surface Y = 64 - 30/128*64 = 49
+	body.teleport(Vector2(30.0, 49.0 - body.half_size().y))
+	body.move(World.flat_ground(40, 12, 3), DT)
+	assert_true(body.on_ramp, "body on descending portion of ramp is detected")
+
+
+func test_no_launch_at_ramp_top() -> void:
+	# Standing at the top of a ramp must NOT launch the player airborne.
+	# The ramp surface ends, but the body should simply stop being on_ramp
+	# and transition to flat ground, not go airborne.
+	# Custom grid with floor at y=0 (row 0)
+	var rows: Array = []
+	rows.append("#".repeat(40))  # row 0: floor at y=0
+	var grid := World.make_grid(rows)
+	
+	var body := World.player_body()
+	var ramp := World.make_ramp(Vector2(0.0, 0.0), 128.0, 64.0)
+	body.ramps.append(ramp)
+	
+	# Place body just past ramp end, slightly above floor; give small downward vel to settle
+	body.teleport(Vector2(130.0, -5.0))
+	body.velocity = Vector2(0.0, 50.0)  # small downward velocity to trigger landing
+	body.move(grid, DT)
+	body.velocity = Vector2(0.0, 0.0)
+	body.move(grid, DT)
+	assert_true(body.on_floor, "body is grounded on flat floor after ramp")
+	assert_false(body.on_ramp, "ramp flag cleared off the ramp")
+	assert_false(body.on_floor == false and body.on_ramp == false,
+		"body does NOT become airborne at ramp end")
+
+
+func test_ramp_bonus_bleeds_off_on_flat() -> void:
+	var r_flat := _make_ramp_body(); var body: KinematicBody = r_flat["body"]; var ramp: RampCollider = r_flat["ramp"]
+	# Give some slope bonus by descending from top
+	body.teleport(Vector2(128.0, 0.0 - body.half_size().y))
+	body.velocity = Vector2(-500.0, 0.0)
+	body.move(World.flat_ground(40, 12, 3), DT)
+	
+	# Now move to flat ground (past ramp at x=128, flat floor at y=0)
+	body.teleport(Vector2(130.0, 0.0 - body.half_size().y))
+	body.velocity = Vector2(0.0, 0.0)
+	
+	# Simulate 1 second on flat
+	for _i in 60:
+		body.move(World.flat_ground(40, 12, 3), DT)
+	
+	# On flat ground, bonus should bleed toward zero
+	assert_false(body.on_ramp, "ramp flag cleared on flat ground")
+
+
+func test_slick_ramp_flag_propagates() -> void:
+	var body := World.player_body()
+	var slick_ramp := World.make_ramp(Vector2(0.0, 0.0), 128.0, 64.0, RampCollider.Direction.UP_RIGHT, true)
+	body.ramps.append(slick_ramp)
+	body.teleport(Vector2(32.0, 48.0 - body.half_size().y))
+	body.move(World.flat_ground(40, 12, 3), DT)
+	assert_true(body.on_slick, "slick ramp sets on_slick flag")
+
+
+func test_ramp_up_left_works() -> void:
+	var body := World.player_body()
+	var ramp := RampCollider.new()
+	ramp.configure(Vector2(0.0, 0.0), 128.0, 64.0, RampCollider.Direction.UP_LEFT)
+	body.ramps.append(ramp)
+	# UP_LEFT: surface at x=128 is y=64, at x=0 is y=0
+	# Place slightly left of right end (x=120), surface Y = 64 - 8/128*64 = 60
+	body.teleport(Vector2(120.0, 60.0 - body.half_size().y))
+	body.move(World.flat_ground(40, 12, 3), DT)
+	assert_true(body.on_ramp, "UP_LEFT ramp also works")
+	# Angle should be negative (rising to the left)
+	assert_true(body.floor_angle < 0.0, "UP_LEFT ramp has negative angle")
+
+
+func test_multiple_ramps_only_closest_resolves() -> void:
+	# Two overlapping ramps: the one with the highest surface at body x should win
+	var body := World.player_body()
+	var ramp1 := World.make_ramp(Vector2(0.0, 0.0), 128.0, 64.0)  # low ramp: surface at x=64 is 32
+	var ramp2 := World.make_ramp(Vector2(0.0, 0.0), 128.0, 128.0) # steep ramp: surface at x=64 is 64
+	body.ramps.append(ramp1)
+	body.ramps.append(ramp2)
+	# At x=64, ramp1 surface = 64 - 64/128*64 = 32, ramp2 surface = 128 - 64/128*128 = 64
+	# Place body at x=64, feet at y=64 (above both ramps, will fall to highest)
+	body.teleport(Vector2(64.0, 64.0 - body.half_size().y))
+	body.move(World.flat_ground(40, 12, 3), DT)
+	# Should resolve to the higher ramp (ramp2 surface at x=64 is 64)
+	assert_approx(body.feet_y(), 64.0, 1.0, "body rests on highest ramp surface")

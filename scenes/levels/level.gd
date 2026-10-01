@@ -16,6 +16,7 @@ const BOOST_PAD_SCENE := "res://scenes/entities/BoostPad.tscn"
 const BOSS_GUARDIAN_ARBOR_SCENE := "res://scenes/entities/BossGuardianArbor.tscn"
 const TUTORIAL_PROMPT_SCENE := "res://scenes/entities/TutorialPrompt.tscn"
 const HUD_SCENE := "res://scenes/ui/HUD.tscn"
+const TOUCH_CONTROLS_SCENE := "res://src/ui/touch_controls.tscn"
 
 const EXIT_RADIUS := 28.0
 const HAZARD_KILL_Y := 900.0
@@ -159,6 +160,12 @@ func _kind_value(kind: String) -> int:
 func _spawn_hud() -> void:
 	var hud: Node = load(HUD_SCENE).instantiate()
 	add_child(hud)
+
+	# Touch controls (only visible on touch devices, or forced for testing).
+	var touch: Node = load(TOUCH_CONTROLS_SCENE).instantiate()
+	add_child(touch)
+	if player != null:
+		touch.input_changed.connect(player._on_touch_input)
 
 func _spawn_player() -> void:
 	var packed: PackedScene = load(PLAYER_SCENE)
