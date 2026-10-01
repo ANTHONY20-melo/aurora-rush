@@ -1,0 +1,170 @@
+{
+  "characters": [
+    {
+      "id": "aero",
+      "name": "AERO",
+      "title": "O Velocista",
+      "description": "Nascido na falha do Nucleo. Corre antes de pensar.",
+      "portrait": "res://assets/characters/aero_portrait.png",
+      "sprite": "res://assets/characters/aero_sprite.png",
+      "color": [0.36, 0.87, 1.0, 1.0],
+      "stats": {
+        "speed": 5,
+        "defense": 3,
+        "control": 5
+      },
+      "gameplay_modifiers": {
+        "max_speed_multiplier": 1.15,
+        "acceleration_multiplier": 1.2,
+        "air_control_multiplier": 1.25,
+        "dash_cooldown_multiplier": 0.85,
+        "dash_duration_multiplier": 1.1,
+        "health_multiplier": 0.9,
+        "damage_taken_multiplier": 1.15,
+        "knockback_resistance": 0.7
+      },
+      "unlock_cost": 0,
+      "unlock_type": "default",
+      "unlock_requirement": "",
+      "starting_skin": "default",
+      "skins": ["default", "neon", "shadow", "gold"]
+    },
+    {
+      "id": "lyra",
+      "name": "LYRA",
+      "title": "A Equilibrista",
+      "description": "Ex-guardiã do Templo. Precisão cirúrgica em cada salto.",
+      "portrait": "res://assets/characters/lyra_portrait.png",
+      "sprite": "res://assets/characters/lyra_sprite.png",
+      "color": [0.9, 0.4, 0.8, 1.0],
+      "stats": {
+        "speed": 4,
+        "defense": 3,
+        "control": 5
+      },
+      "gameplay_modifiers": {
+        "max_speed_multiplier": 1.0,
+        "acceleration_multiplier": 1.0,
+        "air_control_multiplier": 1.5,
+        "jump_buffer_multiplier": 1.5,
+        "coyote_time_multiplier": 1.5,
+        "double_jump_force_multiplier": 1.2,
+        "wall_jump_enabled": true,
+        "air_dash_charges": 2,
+        "health_multiplier": 1.0,
+        "damage_taken_multiplier": 1.0,
+        "knockback_resistance": 1.0
+      },
+      "unlock_cost": 500,
+      "unlock_type": "currency",
+      "unlock_requirement": "Collect 500 energy fragments",
+      "starting_skin": "default",
+      "skins": ["default", "temple", "void", "prism"]
+    },
+    {
+      "id": "titan",
+      "name": "TITAN",
+      "title": "O Colosso",
+      "description": "Unidade de contenção reativada. Força bruta, alma gentil.",
+      "portrait": "res://assets/characters/titan_portrait.png",
+      "sprite": "res://assets/characters/titan_sprite.png",
+      "color": [0.95, 0.7, 0.2, 1.0],
+      "stats": {
+        "speed": 2,
+        "defense": 5,
+        "control": 3
+      },
+      "gameplay_modifiers": {
+        "max_speed_multiplier": 0.75,
+        "acceleration_multiplier": 0.7,
+        "air_control_multiplier": 0.8,
+        "health_multiplier": 2.0,
+        "damage_taken_multiplier": 0.5,
+        "knockback_resistance": 2.0,
+        "ground_slam_attack": true,
+        "charge_attack_enabled": true,
+        "super_armor_threshold": 30.0,
+        "crush_enemies_on_land": true
+      },
+      "unlock_cost": 1200,
+      "unlock_type": "currency",
+      "unlock_requirement": "Defeat Guardian Arbor + collect 1200 energy fragments",
+      "starting_skin": "default",
+      "skins": ["default", "rust", "chrome", "core"]
+    },
+    {
+      "id": "kipo",
+      "name": "KIPO",
+      "title": "A Exploradora",
+      "description": "Curiosidade insaciável. Encontra caminhos que não existem.",
+      "portrait": "res://assets/characters/kipo_portrait.png",
+      "sprite": "res://assets/characters/kipo_sprite.png",
+      "color": [0.4, 1.0, 0.5, 1.0],
+      "stats": {
+        "speed": 3,
+        "defense": 4,
+        "control": 4
+      },
+      "gameplay_modifiers": {
+        "max_speed_multiplier": 1.05,
+        "acceleration_multiplier": 1.1,
+        "air_control_multiplier": 1.1,
+        "secret_detection_radius": 2.0,
+        "collectible_magnet_radius": 120.0,
+        "secret_reward_multiplier": 2.0,
+        "fragment_finder": true,
+        "health_multiplier": 1.15,
+        "damage_taken_multiplier": 0.85,
+        "knockback_resistance": 1.2
+      },
+      "unlock_cost": 800,
+      "unlock_type": "currency",
+      "unlock_requirement": "Find 15 secret areas",
+      "starting_skin": "default",
+      "skins": ["default", "explorer", "crystal", "nature"]
+    },
+    {
+      "id": "volt",
+      "name": "VOLT",
+      "title": "O Condutor",
+      "description": "Energia pura em forma humanoide. Dash é vida.",
+      "portrait": "res://assets/characters/volt_portrait.png",
+      "sprite": "res://assets/characters/volt_sprite.png",
+      "color": [1.0, 0.9, 0.2, 1.0],
+      "stats": {
+        "speed": 5,
+        "defense": 2,
+        "control": 4
+      },
+      "gameplay_modifiers": {
+        "max_speed_multiplier": 1.1,
+        "acceleration_multiplier": 1.3,
+        "dash_cooldown_multiplier": 0.5,
+        "dash_duration_multiplier": 1.5,
+        "dash_charges_air": 3,
+        "dash_damage_immunity": true,
+        "lightning_trail": true,
+        "health_multiplier": 0.75,
+        "damage_taken_multiplier": 1.3,
+        "knockback_resistance": 0.5
+      },
+      "unlock_cost": 2000,
+      "unlock_type": "currency",
+      "unlock_requirement": "Complete Zone 03 + 2000 energy fragments",
+      "starting_skin": "default",
+      "skins": ["default", "overcharge", "storm", "plasma"]
+    }
+  ],
+  "currency": {
+    "energy_fragments": {
+      "name": "Fragmentos de Energia",
+      "icon": "res://assets/ui/currency_fragment.png",
+      "description": "Moeda principal. Coletada em fases, segredos e desafios."
+    },
+    "aurora_crystals": {
+      "name": "Cristais Aurora",
+      "icon": "res://assets/ui/currency_crystal.png",
+      "description": "Moeda premium. Conquistas, rank S, desafios especiais."
+    }
+  }
+}

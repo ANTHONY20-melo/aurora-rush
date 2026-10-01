@@ -77,6 +77,8 @@ func _new_run_defaults(data: SaveData) -> void:
 	data.unlock_zone("zone01")
 	data.unlock_level("z1_l1")
 	data.unlock_skin("default")
+	data.unlock_character("aero")
+	data.select_character("aero")
 	data.max_lives = 3
 	data.lives = 3
 

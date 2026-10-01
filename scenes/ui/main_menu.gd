@@ -7,6 +7,7 @@ extends Control
 @onready var _title: Label = $Background/Center/Column/Title
 @onready var _tagline: Label = $Background/Center/Column/Tagline
 @onready var _play: Button = $Background/Center/Column/Buttons/Play
+@onready var _characters: Button = $Background/Center/Column/Buttons/Characters
 @onready var _quit: Button = $Background/Center/Column/Buttons/Quit
 @onready var _status: Label = $Background/Center/Column/Status
 
@@ -17,6 +18,7 @@ func _ready() -> void:
 	_configure(_status, 13, Color(0.95, 0.72, 0.45))
 
 	_play.pressed.connect(_on_play_pressed)
+	_characters.pressed.connect(_on_characters_pressed)
 	_quit.pressed.connect(_on_quit_pressed)
 	_play.grab_focus()
 
@@ -25,6 +27,8 @@ func _ready() -> void:
 	# Keyboard/gamepad navigation is expected without touching the mouse.
 	_play.focus_entered.connect(func() -> void: AudioDirector.play_sfx("ui_move", -6.0))
 	_play.pressed.connect(func() -> void: AudioDirector.play_sfx("ui_confirm", -4.0))
+	_characters.focus_entered.connect(func() -> void: AudioDirector.play_sfx("ui_move", -6.0))
+	_characters.pressed.connect(func() -> void: AudioDirector.play_sfx("ui_confirm", -4.0))
 	_quit.pressed.connect(func() -> void: AudioDirector.play_sfx("ui_confirm", -4.0))
 
 
@@ -56,6 +60,10 @@ func _on_play_pressed() -> void:
 		_status.text = "Falha ao iniciar a fase '%s'" % first
 		return
 	SceneDirector.to_level(first)
+
+
+func _on_characters_pressed() -> void:
+	SceneDirector.to_character()
 
 
 func _on_quit_pressed() -> void:

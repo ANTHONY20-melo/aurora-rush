@@ -8,9 +8,11 @@ extends Node
 
 const ZONES_DIR := "res://src/data/zones"
 const LEVELS_DIR := "res://src/data/levels"
+const CHARACTERS_PATH := "res://src/data/characters/characters.json"
 
 var zones: Array[ZoneData] = []
 var levels: Dictionary = {}          ## level_id -> LevelData
+var characters: Dictionary = {}      ## character_id -> character data
 var _zone_index: Dictionary = {}     ## zone_id -> ZoneData
 var _load_errors: PackedStringArray = PackedStringArray()
 var _loaded: bool = false
@@ -23,11 +25,13 @@ func _ready() -> void:
 func load_all() -> void:
 	zones.clear()
 	levels.clear()
+	characters.clear()
 	_zone_index.clear()
 	_load_errors.clear()
 
 	_load_zones()
 	_load_levels()
+	_load_characters()
 	_validate_cross_references()
 	_loaded = true
 
@@ -146,6 +150,37 @@ func _first_error_line(text: String) -> int:
 	return maxi(1, text.split("\n").size())
 
 
+func _load_characters() -> void:
+	if not FileAccess.file_exists(CHARACTERS_PATH):
+		_load_errors.append("characters file not found at %s" % CHARACTERS_PATH)
+		return
+	var text := FileAccess.get_file_as_string(CHARACTERS_PATH)
+	if text.is_empty():
+		_load_errors.append("characters file is empty")
+		return
+	var parsed: Variant = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		_load_errors.append("characters: not a JSON object")
+		return
+	
+	var char_list: Array = (parsed as Dictionary).characters as Array
+	if typeof(char_list) != TYPE_ARRAY:
+		_load_errors.append("characters: 'characters' must be an array")
+		return
+	
+	for char_data in char_list:
+		if typeof(char_data) != TYPE_DICTIONARY:
+			continue
+		var id := String(char_data.get("id", ""))
+		if id.is_empty():
+			_load_errors.append("character missing 'id'")
+			continue
+		if characters.has(id):
+			_load_errors.append("duplicate character id '%s'" % id)
+			continue
+		characters[id] = char_data
+
+
 # --- lookups ----------------------------------------------------------------
 
 func get_level(level_id: String) -> LevelData:
@@ -212,6 +247,28 @@ func first_level() -> String:
 func is_boss_level(level_id: String) -> bool:
 	var level := get_level(level_id)
 	return level != null and level.has_boss
+
+
+# --- character lookups --------------------------------------------------------
+
+func get_character(character_id: String) -> Dictionary:
+	ensure_loaded()
+	return characters.get(character_id, characters.get("aero", {}))
+
+func has_character(character_id: String) -> bool:
+	ensure_loaded()
+	return characters.has(character_id)
+
+func get_all_characters() -> Array:
+	ensure_loaded()
+	var list := []
+	for key in characters.keys():
+		list.append(characters[key])
+	return list
+
+func character_count() -> int:
+	ensure_loaded()
+	return characters.size()
 
 
 func errors() -> PackedStringArray:

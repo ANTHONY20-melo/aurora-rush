@@ -13,7 +13,7 @@ const LEVEL_SELECT := "res://scenes/ui/LevelSelect.tscn"
 const CREDITS := "res://scenes/ui/Credits.tscn"
 const SETTINGS := "res://scenes/ui/SettingsMenu.tscn"
 const COLLECTION := "res://scenes/ui/Collection.tscn"
-const CHARACTER := "res://scenes/ui/CharacterMenu.tscn"
+const CHARACTER := "res://scenes/ui/CharacterSelect.tscn"
 const RESULTS := "res://scenes/ui/Results.tscn"
 const LEVEL_TEMPLATE := "res://scenes/levels/Level.tscn"
 

@@ -29,6 +29,12 @@ var abilities: Dictionary = {}
 ## cosmetic id -> unlocked
 var skins: Dictionary = {}
 var selected_skin: String = "default"
+## character id -> true
+var unlocked_characters: Dictionary = {}
+## currency
+var energy_fragments: int = 0
+var aurora_crystals: int = 0
+var selected_character: String = "aero"
 ## achievement id -> unix time unlocked
 var achievements: Dictionary = {}
 ## star/fragment ids collected (campaign-wide counters)
@@ -193,6 +199,56 @@ func mark_challenge_cleared(challenge_id: String) -> bool:
 	return true
 
 
+# --- characters ---------------------------------------------------------------
+
+func unlock_character(character_id: String) -> bool:
+	if unlocked_characters.has(character_id):
+		return false
+	unlocked_characters[character_id] = true
+	return true
+
+
+func is_character_unlocked(character_id: String) -> bool:
+	return unlocked_characters.has(character_id)
+
+
+func select_character(character_id: String) -> bool:
+	if not is_character_unlocked(character_id):
+		return false
+	selected_character = character_id
+	return true
+
+
+func get_selected_character() -> String:
+	if not is_character_unlocked(selected_character):
+		selected_character = "aero"
+	return selected_character
+
+
+# --- currency ----------------------------------------------------------------
+
+func add_energy_fragments(amount: int) -> void:
+	energy_fragments += maxi(0, amount)
+
+
+func spend_energy_fragments(amount: int) -> bool:
+	if energy_fragments < amount:
+		return false
+	energy_fragments -= amount
+	return true
+
+
+func add_aurora_crystals(amount: int) -> void:
+	aurora_crystals += maxi(0, amount)
+
+
+func spend_aurora_crystals(amount: int) -> bool:
+	if aurora_crystals < amount:
+		return false
+	aurora_crystals -= amount
+	return true
+
+
 # --- aggregate progress -----------------------------------------------------
 
 func levels_completed_count() -> int:
@@ -254,6 +310,10 @@ func to_dict() -> Dictionary:
 		"abilities": abilities.duplicate(),
 		"skins": skins.duplicate(),
 		"selected_skin": selected_skin,
+		"unlocked_characters": unlocked_characters.duplicate(),
+		"energy_fragments": energy_fragments,
+		"aurora_crystals": aurora_crystals,
+		"selected_character": selected_character,
 		"achievements": achievements.duplicate(),
 		"challenges_cleared": challenges_cleared.duplicate(),
 		"fragments": fragments,
@@ -284,6 +344,10 @@ static func from_dict(data: Dictionary) -> SaveData:
 	out.abilities = (data.get("abilities", {}) as Dictionary).duplicate()
 	out.skins = (data.get("skins", {}) as Dictionary).duplicate()
 	out.selected_skin = String(data.get("selected_skin", "default"))
+	out.unlocked_characters = (data.get("unlocked_characters", {}) as Dictionary).duplicate()
+	out.energy_fragments = int(data.get("energy_fragments", 0))
+	out.aurora_crystals = int(data.get("aurora_crystals", 0))
+	out.selected_character = String(data.get("selected_character", "aero"))
 	out.achievements = (data.get("achievements", {}) as Dictionary).duplicate()
 	out.challenges_cleared = (data.get("challenges_cleared", {}) as Dictionary).duplicate()
 	out.fragments = int(data.get("fragments", 0))

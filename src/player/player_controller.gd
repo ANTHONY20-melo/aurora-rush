@@ -36,6 +36,7 @@ var _shake_decay: float = 15.0
 
 func _ready() -> void:
 	_config = PlayerMovementConfig.new()
+	_apply_character_modifiers(_config)
 	var validation := _config.validate()
 	if not validation.is_empty():
 		push_error("PlayerController: invalid movement config: %s" % ", ".join(validation))
@@ -56,6 +57,13 @@ func setup(level_grid: LevelData, spawn: Vector2) -> void:
 		return
 	# Seed the contact state so the very first physics tick already sees ground.
 	movement.step(1.0 / 60.0, grid)
+	
+	# Apply character-specific health multiplier
+	var char_data := ContentDB.get_character(SaveManager.data.get_selected_character())
+	var health_mult := float(char_data.gameplay_modifiers.get("health_multiplier", 1.0))
+	GameManager.max_health = 100.0 * health_mult
+	GameManager.health = GameManager.max_health
+	
 	_sync_visual()
 
 
@@ -187,3 +195,68 @@ func _is_inside_area(kind: String) -> bool:
 ## Called by boost pads to give the player a speed burst.
 func apply_boost(boost_velocity: Vector2, duration: float) -> void:
 	movement.apply_boost(boost_velocity, duration)
+
+
+## Apply selected character's gameplay modifiers to the movement config.
+func _apply_character_modifiers(config: PlayerMovementConfig) -> void:
+	var char_id := SaveManager.data.get_selected_character()
+	var char_data := ContentDB.get_character(char_id)
+	var mods: Dictionary = char_data.gameplay_modifiers as Dictionary
+	
+	# Speed modifiers
+	if mods.has("max_speed_multiplier"):
+		config.max_speed *= float(mods["max_speed_multiplier"])
+		config.max_air_speed *= float(mods["max_speed_multiplier"])
+	if mods.has("acceleration_multiplier"):
+		config.ground_acceleration *= float(mods["acceleration_multiplier"])
+		config.air_acceleration *= float(mods["acceleration_multiplier"])
+	if mods.has("air_control_multiplier"):
+		config.air_acceleration *= float(mods["air_control_multiplier"])
+	
+	# Jump modifiers
+	if mods.has("jump_buffer_multiplier"):
+		config.jump_buffer_time *= float(mods["jump_buffer_multiplier"])
+	if mods.has("coyote_time_multiplier"):
+		config.coyote_time *= float(mods["coyote_time_multiplier"])
+	if mods.has("double_jump_force_multiplier"):
+		config.double_jump_force *= float(mods["double_jump_force_multiplier"])
+	
+	# Dash modifiers
+	if mods.has("dash_cooldown_multiplier"):
+		config.dash_cooldown *= float(mods["dash_cooldown_multiplier"])
+	if mods.has("dash_duration_multiplier"):
+		config.dash_duration *= float(mods["dash_duration_multiplier"])
+	
+	# Defense modifiers (handled in GameManager)
+	# damage_taken_multiplier, knockback_resistance
+	
+	# Special abilities
+	if mods.has("wall_jump_enabled") and bool(mods["wall_jump_enabled"]):
+		# Wall jump would need additional implementation
+		pass
+	if mods.has("air_dash_charges"):
+		config.air_dashes = int(mods["air_dash_charges"])
+	if mods.has("ground_slam_attack") and bool(mods["ground_slam_attack"]):
+		# Ground slam attack on landing from high velocity
+		pass
+	if mods.has("charge_attack_enabled") and bool(mods["charge_attack_enabled"]):
+		# Charge attack
+		pass
+	if mods.has("crush_enemies_on_land") and bool(mods["crush_enemies_on_land"]):
+		# Crush enemies on hard landing
+		pass
+	if mods.has("dash_damage_immunity") and bool(mods["dash_damage_immunity"]):
+		# Immunity during dash
+		pass
+	if mods.has("lightning_trail") and bool(mods["lightning_trail"]):
+		# Visual effect during dash
+		pass
+	if mods.has("secret_detection_radius"):
+		# Expanded secret detection
+		pass
+	if mods.has("collectible_magnet_radius"):
+		# Magnet for collectibles
+		pass
+	if mods.has("fragment_finder") and bool(mods["fragment_finder"]):
+		# Show fragment locations
+		pass

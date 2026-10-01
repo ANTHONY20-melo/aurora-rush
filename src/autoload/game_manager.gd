@@ -170,7 +170,9 @@ func register_collectible(kind: String, position: Vector2) -> void:
 	match kind:
 		"collectible_energy": add_score(SCORE_COLLECTIBLE, position)
 		"collectible_crystal": add_score(SCORE_CRYSTAL, position)
-		"collectible_fragment": add_score(SCORE_FRAGMENT, position)
+		"collectible_fragment":
+			add_score(SCORE_FRAGMENT, position)
+			SaveManager.data.fragments += 1
 		"collectible_special": add_score(SCORE_SPECIAL, position)
 		_: add_score(SCORE_COLLECTIBLE, position)
 	bump_combo()
@@ -220,6 +222,12 @@ func _tick_combo(delta: float) -> void:
 func damage(amount: float, source: String = "unknown") -> void:
 	if invulnerable_time > 0.0 or level_finished or not is_playing:
 		return
+	
+	# Apply character damage taken multiplier
+	var char_data := ContentDB.get_character(SaveManager.data.get_selected_character())
+	var damage_mult := float(char_data.gameplay_modifiers.get("damage_taken_multiplier", 1.0))
+	amount *= damage_mult
+	
 	health = maxf(0.0, health - amount)
 	damage_taken += int(amount)
 	invulnerable_time = 1.2

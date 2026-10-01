@@ -55,6 +55,12 @@ layout_mode = 2
 size_flags_horizontal = 4
 text = "JOGAR"
 
+[node name="Characters" type="Button" parent="Background/Center/Column/Buttons"]
+custom_minimum_size = Vector2(260, 46)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "PERSONAGENS"
+
 [node name="Quit" type="Button" parent="Background/Center/Column/Buttons"]
 custom_minimum_size = Vector2(260, 46)
 layout_mode = 2
