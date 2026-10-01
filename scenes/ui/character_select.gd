@@ -39,7 +39,12 @@ func _ready() -> void:
 	_select_char_at(0)
 
 func _setup_fonts() -> void:
-	var labels := [_char_name, _char_title, _char_desc, _stat_speed, _stat_defense, _stat_control, _unlock_info]
+	# Typed array: an untyped Array makes `label` a Variant, and assigning to an
+	# attribute of a Variant is rejected by the parser.
+	var labels: Array[Label] = [
+		_char_name, _char_title, _char_desc,
+		_stat_speed, _stat_defense, _stat_control, _unlock_info,
+	]
 	for label in labels:
 		label.add_theme_font_size_override("font_size", 18)
 		label.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
@@ -63,7 +68,7 @@ func _load_characters() -> void:
 	_char_buttons.clear()
 	
 	for i: int in _characters.size():
-		var char := _characters[i]
+		var char: Dictionary = _characters[i]
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(100, 140)
 		btn.size_flags_horizontal = 4
@@ -71,7 +76,9 @@ func _load_characters() -> void:
 		
 		# Create character preview
 		var vbox := VBoxContainer.new()
-		vbox.theme_override_constants/separation = 8
+		# theme_override_constants/separation is not an identifier and not a Godot 4
+		# API; the supported form is add_theme_constant_override.
+		vbox.add_theme_constant_override("separation", 8)
 		vbox.alignment = 1
 		
 		var name_label := Label.new()
@@ -89,13 +96,13 @@ func _load_characters() -> void:
 		
 		# Stats preview
 		var stats_hbox := HBoxContainer.new()
-		stats_hbox.theme_override_constants/separation = 10
+		stats_hbox.add_theme_constant_override("separation", 10)
 		stats_hbox.alignment = 1
-		
-		var stats := char.stats
+
+		var stats: Dictionary = char.get("stats", {})
 		for stat_key in ["speed", "defense", "control"]:
 			var stat_vbox := VBoxContainer.new()
-			stat_vbox.theme_override_constants/separation = 2
+			stat_vbox.add_theme_constant_override("separation", 2)
 			stat_vbox.alignment = 1
 			
 			var icon := Label.new()
@@ -146,8 +153,8 @@ func _load_characters() -> void:
 
 func _update_lock_states() -> void:
 	for i: int in _char_buttons.size():
-		var btn := _char_buttons[i]
-		var char := _characters[i]
+		var btn: Button = _char_buttons[i]
+		var char: Dictionary = _characters[i]
 		var char_id := String(char.id)
 		var unlocked := SaveManager.data.is_character_unlocked(char_id)
 		
@@ -206,21 +213,23 @@ func _create_border_style(color: Color, is_focus: bool = false) -> StyleBoxFlat:
 	return style
 
 func _update_details() -> void:
-	var char := _characters[_selected_index]
+	# _characters is an untyped Array, so every read out of it is a Variant and
+	# cannot be inferred with :=. Each level is narrowed explicitly.
+	var char: Dictionary = _characters[_selected_index]
 	var char_id := String(char.id)
 	var unlocked := SaveManager.data.is_character_unlocked(char_id)
-	
-	var color_arr := char.color
+
+	var color_arr: Array = char.get("color", [])
 	var char_color := Color(1, 1, 1)
 	if color_arr.size() >= 3:
 		char_color = Color(float(color_arr[0]), float(color_arr[1]), float(color_arr[2]), 1.0)
-	
+
 	_char_name.text = String(char.name)
 	_char_name.add_theme_color_override("font_color", char_color)
 	_char_title.text = String(char.title)
 	_char_desc.text = String(char.description)
-	
-	var stats := char.stats
+
+	var stats: Dictionary = char.get("stats", {})
 	_stat_speed.text = "★".repeat(int(stats.get("speed", 1))) + "☆".repeat(5 - int(stats.get("speed", 1)))
 	_stat_defense.text = "★".repeat(int(stats.get("defense", 1))) + "☆".repeat(5 - int(stats.get("defense", 1)))
 	_stat_control.text = "★".repeat(int(stats.get("control", 1))) + "☆".repeat(5 - int(stats.get("control", 1)))
@@ -253,7 +262,7 @@ func _on_select_pressed() -> void:
 	_update_details()
 
 func _on_unlock_pressed() -> void:
-	var char := _characters[_selected_index]
+	var char: Dictionary = _characters[_selected_index]
 	var char_id := String(char.id)
 	var cost := int(char.get("unlock_cost", 0))
 	

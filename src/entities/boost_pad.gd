@@ -55,9 +55,12 @@ func _create_boost_effect() -> void:
 	particles.gravity = Vector2(0, 0)
 	particles.color = Color(0.36, 0.87, 1.0, 1.0)
 	particles.color_ramp = Gradient.new()
-	var cr := particles.color_ramp
-	cr.set_offset(0.0, Color(0.62, 0.94, 1.0, 1.0))
-	cr.set_offset(1.0, Color(0.36, 0.87, 1.0, 0.0))
+	# set_offset(point, offset) moves a point along the ramp; it does not take a
+	# colour. A fresh Gradient already has two points at 0.0 and 1.0, so the
+	# intended fade is expressed with set_color.
+	var cr: Gradient = particles.color_ramp
+	cr.set_color(0, Color(0.62, 0.94, 1.0, 1.0))
+	cr.set_color(1, Color(0.36, 0.87, 1.0, 0.0))
 	get_tree().root.add_child(particles)
 	particles.global_position = global_position
 	particles.emitting = true

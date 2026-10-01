@@ -45,7 +45,8 @@ func get_all_characters() -> Array:
 func get_unlocked_characters(save_data: SaveData) -> Array:
 	var list := []
 	for key in characters.keys():
-		var char := characters[key]
+		# Dictionary lookup yields Variant, so := cannot infer a type here.
+		var char: Dictionary = characters[key]
 		if save_data.is_character_unlocked(key):
 			list.append(char)
 	return list
@@ -56,5 +57,12 @@ func is_unlocked(id: String, save_data: SaveData) -> bool:
 func get_currency_data(currency_id: String) -> Dictionary:
 	if not _loaded:
 		load_all()
-	var currency_data := (JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH)) as Dictionary).currency
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH))
+	if not (parsed is Dictionary):
+		return {}
+	# parsed["currency"] is a Variant; it must be checked and narrowed before use.
+	var table: Variant = parsed.get("currency", {})
+	if not (table is Dictionary):
+		return {}
+	var currency_data: Dictionary = table
 	return currency_data.get(currency_id, {})

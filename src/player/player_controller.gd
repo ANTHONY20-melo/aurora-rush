@@ -200,13 +200,9 @@ func _apply_tint() -> void:
 func _update_dash_trail() -> void:
 	if _dash_trail == null:
 		return
-	var dashing := movement.is_dashing
-	if dashing and not _dash_trail.emitting:
-		_dash_trail.emitting = true
-		_dash_trail.initial_direction = Vector2(-float(movement.facing), 0.0).rotated(randf_range(-0.3, 0.3))
-		_dash_trail.restart()
-	elif not dashing and _dash_trail.emitting:
-		_dash_trail.emitting = false
+	# set_active owns the direction logic; the controller used to duplicate it
+	# inline, which meant the dash trail script had no real caller.
+	_dash_trail.set_active(movement.is_dashing, float(movement.facing))
 
 
 func _add_camera_shake(magnitude: float, duration: float) -> void:
