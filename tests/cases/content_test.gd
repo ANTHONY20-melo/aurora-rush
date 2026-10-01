@@ -214,6 +214,72 @@ func test_levels_carry_gameplay_content() -> void:
 			"%s: no collectibles -- nothing to collect" % level_id)
 
 
+func test_zones_load_without_content_problems() -> void:
+	# This is the check that was missing when the game booted with 59 warnings.
+	# run_tests.ps1 never loaded ContentDB, so a mis-shaped level file or an
+	# orphaned level was invisible to a green suite and only surfaced the moment
+	# a player opened the game.
+	ContentDB.ensure_loaded()
+	var problems: PackedStringArray = ContentDB.errors()
+	assert_true(problems.is_empty(),
+		"ContentDB reported %d problem(s):\n%s" % [problems.size(), "\n".join(problems)])
+
+
+func test_every_level_grid_is_rectangular() -> void:
+	# Ragged rows are the single largest source of content warnings: a row
+	# measured by hand ends up a few characters short and the parser pads it with
+	# empty tiles, silently changing the level's shape.
+	for level_id in EXPECTED_LEVELS:
+		var parsed = JSON.parse_string(
+			FileAccess.get_file_as_string(LEVEL_DIR + level_id + ".json"))
+		if not (parsed is Dictionary):
+			continue
+		var rows: Array = parsed.get("grid", [])
+		var widths := {}
+		for row in rows:
+			widths[String(row).length()] = true
+		assert_true(widths.size() <= 1,
+			"%s: grid rows have mixed widths %s" % [level_id, str(widths.keys())])
+
+
+func test_every_level_is_reachable_from_a_zone() -> void:
+	# zone01.json wrote "boss_level_id" while ZoneData reads "boss_level", so the
+	# key never bound and the boss level was orphaned: present on disk, impossible
+	# to reach from the map.
+	var referenced := {}
+	for zone_id in ["zone01"]:
+		var path := "res://src/data/zones/%s.json" % zone_id
+		if not FileAccess.file_exists(path):
+			continue
+		var zone = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if not (zone is Dictionary):
+			continue
+		for level_id in zone.get("levels", []):
+			referenced[String(level_id)] = true
+		var boss = String(zone.get("boss_level", ""))
+		assert_false(boss.is_empty(), "%s: no boss_level key" % zone_id)
+		if not boss.is_empty():
+			referenced[boss] = true
+	for level_id in EXPECTED_LEVELS:
+		assert_true(referenced.has(level_id),
+			"level '%s' exists but no zone lists it -- unreachable" % level_id)
+
+
+func test_long_levels_have_enough_checkpoints() -> void:
+	# LevelData warns below 2 checkpoints on long levels. With the parser bug
+	# fixed, every shipped level was short exactly one.
+	for level_id in EXPECTED_LEVELS:
+		var level := _load_level(level_id)
+		if level == null:
+			continue
+		var row_count := (_read_grid(level_id) as Array).size()
+		if row_count <= 20:
+			continue
+		assert_gte(float(level.checkpoints.size()), 2.0,
+			"%s: %d rows long but only %d checkpoint(s)"
+			% [level_id, row_count, level.checkpoints.size()])
+
+
 # --- character rig ---------------------------------------------------------
 
 func test_player_scene_loads_and_has_rig_nodes() -> void:
@@ -469,12 +535,29 @@ func test_player_reachable_from_level_scene() -> void:
 
 # --- helpers ---------------------------------------------------------------
 
-func _load_level(level_id: String) -> LevelData:
+func _read_json(level_id: String) -> Dictionary:
 	var text := FileAccess.get_file_as_string(LEVEL_DIR + level_id + ".json")
-	var parsed = JSON.parse_string(text)
+	var parsed: Variant = JSON.parse_string(text)
 	if not (parsed is Dictionary):
+		return {}
+	return parsed
+
+
+func _load_level(level_id: String) -> LevelData:
+	var data: Dictionary = _read_json(level_id)
+	if data.is_empty():
 		return null
-	return LevelData.from_dict(parsed)
+	return LevelData.from_dict(data)
+
+
+func _read_grid(level_id: String) -> Array:
+	var data: Dictionary = _read_json(level_id)
+	if data.is_empty():
+		return []
+	var grid: Variant = data.get("grid", [])
+	if grid is Array:
+		return grid
+	return []
 
 
 ## Instantiating the player requires a live scene tree (its _ready builds the
