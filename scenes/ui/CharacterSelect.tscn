@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://b0aurorarushcharacterselect"]
+[gd_scene load_steps=3 format=3 uid="uid://b0aurorarushcharacterselect"]
 
 [ext_resource type="Script" path="res://scenes/ui/character_select.gd" id="1_script"]
+[ext_resource type="Script" path="res://scenes/ui/mascot_sexta_seira.gd" id="2_mascot"]
 
 [node name="CharacterSelect" type="Control"]
 layout_mode = 3
@@ -94,6 +95,19 @@ text = "O Velocista"
 layout_mode = 2
 autowrap_mode = 3
 text = "Nascido na falha do Nucleo. Corre antes de pensar."
+
+[node name="SextaFeira" type="Control" parent="."]
+custom_minimum_size = Vector2(0, 210)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -250.0
+offset_top = 60.0
+offset_right = -20.0
+offset_bottom = 270.0
+mouse_filter = 2
+script = ExtResource("2_mascot")
 
 [node name="StatsContainer" type="HBoxContainer" parent="DetailsPanel"]
 layout_mode = 2
