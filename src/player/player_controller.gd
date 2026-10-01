@@ -286,6 +286,22 @@ const ANIM_DASH := "dash"
 const ANIM_ATTACK := "attack"
 const ANIM_HURT := "hurt"
 
+# --- Asset 001 resting pose -------------------------------------------------
+# The cosplayer is described as seated, legs crossed, hands together on the lap.
+# Laying the rig down and folding the limbs is an offset problem, not a
+# re-parenting problem: every part stays where the hitbox and the other
+# animations expect it, and only the idle applies these values.
+const SEATED_OFFSET := Vector2(0.0, 6.0)
+const SEATED_SCALE := Vector2(1.0, 0.92)
+const LEG_CROSS_LEFT := 0.62
+const LEG_CROSS_RIGHT := -0.62
+const LEG_CROSS_LEFT_POS := Vector2(-2.0, 4.0)
+const LEG_CROSS_RIGHT_POS := Vector2(2.0, 4.0)
+const ARM_LAP_LEFT := -0.7
+const ARM_LAP_RIGHT := 0.7
+const ARM_LAP_LEFT_POS := Vector2(3.0, 3.0)
+const ARM_LAP_RIGHT_POS := Vector2(-3.0, 3.0)
+
 ## Matches the length of the "hurt" animation; also how long the tint stays
 ## ceded to it.
 const HURT_DURATION := 0.25
@@ -318,15 +334,41 @@ func _build_animations() -> void:
 ## same curve, otherwise the 1px neck seam opens and closes twice a second.
 func _build_idle(lib: AnimationLibrary) -> void:
 	_rest_pose()
+	# Asset 001 specifies the resting pose as seated, legs crossed, hands together
+	# on the lap. Seating the whole rig is done once here and never overridden by
+	# the loop, so the cross-legged silhouette holds for the whole idle.
+	_k("Visual:position", 0.0, SEATED_OFFSET)
+	_k("Visual:scale", 0.0, SEATED_SCALE)
+
+	# A slow breath. Torso and head rise together on the same curve, otherwise the
+	# neck seam opens and closes twice a second.
 	_k("Visual/Body:position", 0.0, Vector2.ZERO)
 	_k("Visual/Body:position", 0.6, Vector2(0.0, -1.5))
 	_k("Visual/Body:position", 1.2, Vector2.ZERO)
 	_k("Visual/Head:position", 0.0, Vector2.ZERO)
 	_k("Visual/Head:position", 0.6, Vector2(0.0, -1.5))
 	_k("Visual/Head:position", 1.2, Vector2.ZERO)
-	# Arms drift a third of the torso's travel: enough to read as alive.
-	_k("Visual/ArmLeft:position", 0.6, Vector2(0.0, -0.5))
-	_k("Visual/ArmRight:position", 0.6, Vector2(0.0, -0.5))
+	# The cape lifts a little on the inhale, hanging heavier on the exhale.
+	_k("Visual/Cape:position", 0.0, Vector2.ZERO)
+	_k("Visual/Cape:position", 0.6, Vector2(0.0, -0.5))
+	_k("Visual/Cape:position", 1.2, Vector2.ZERO)
+
+	# Crossed legs: each thigh swings inward across the other and the shins tuck
+	# back out, which reads as ankles crossed from the side.
+	_k("Visual/LegLeft:rotation", 0.0, LEG_CROSS_LEFT)
+	_k("Visual/LegLeft:rotation", 1.2, LEG_CROSS_LEFT)
+	_k("Visual/LegLeft:position", 0.0, LEG_CROSS_LEFT_POS)
+	_k("Visual/LegRight:rotation", 0.0, LEG_CROSS_RIGHT)
+	_k("Visual/LegRight:rotation", 1.2, LEG_CROSS_RIGHT)
+	_k("Visual/LegRight:position", 0.0, LEG_CROSS_RIGHT_POS)
+
+	# Hands resting together on the lap: arms come in and down toward the centre.
+	_k("Visual/ArmLeft:rotation", 0.0, ARM_LAP_LEFT)
+	_k("Visual/ArmLeft:rotation", 1.2, ARM_LAP_LEFT)
+	_k("Visual/ArmLeft:position", 0.0, ARM_LAP_LEFT_POS)
+	_k("Visual/ArmRight:rotation", 0.0, ARM_LAP_RIGHT)
+	_k("Visual/ArmRight:rotation", 1.2, ARM_LAP_RIGHT)
+	_k("Visual/ArmRight:position", 0.0, ARM_LAP_RIGHT_POS)
 	_finish(lib, ANIM_IDLE, 1.2, true)
 
 
@@ -477,13 +519,23 @@ func _rest_pose() -> void:
 	_pending.clear()
 	_k("Visual:rotation", 0.0, 0.0)
 	_k("Visual:modulate", 0.0, Color.WHITE)
+	# Every moving animation starts from standing, so the seated pose the idle
+	# applies has to be explicitly undone here or a jump would inherit it.
+	_k("Visual:position", 0.0, Vector2.ZERO)
+	_k("Visual:scale", 0.0, Vector2.ONE)
 	_k("Visual/Body:position", 0.0, Vector2.ZERO)
 	_k("Visual/Body:scale", 0.0, Vector2.ONE)
 	_k("Visual/Head:position", 0.0, Vector2.ZERO)
+	_k("Visual/Cape:position", 0.0, Vector2.ZERO)
+	# Rotations, not just positions: the idle folds the limbs by rotation.
 	_k("Visual/ArmLeft:position", 0.0, Vector2.ZERO)
+	_k("Visual/ArmLeft:rotation", 0.0, 0.0)
 	_k("Visual/ArmRight:position", 0.0, Vector2.ZERO)
+	_k("Visual/ArmRight:rotation", 0.0, 0.0)
 	_k("Visual/LegLeft:position", 0.0, Vector2.ZERO)
+	_k("Visual/LegLeft:rotation", 0.0, 0.0)
 	_k("Visual/LegRight:position", 0.0, Vector2.ZERO)
+	_k("Visual/LegRight:rotation", 0.0, 0.0)
 
 
 ## Queues one key. Re-queuing at a time that is already used replaces that key

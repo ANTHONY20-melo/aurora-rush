@@ -4,7 +4,7 @@
 
 [sub_resource type="Gradient" id="1_color_ramp"]
 offsets = PackedFloat32Array(0.0, 1.0)
-colors = PackedColorArray(0.62, 0.94, 1.0, 0.9, 0.36, 0.87, 1.0, 0.0)
+colors = PackedColorArray(0.78, 0.45, 0.95, 0.9, 0.42, 0.2, 0.62, 0.0)
 
 [sub_resource type="RectangleShape2D" id="2_hitbox"]
 size = Vector2(22, 30)
@@ -23,45 +23,74 @@ shape = SubResource("2_hitbox")
 [node name="Visual" type="Node2D" parent="."]
 y_sort_enabled = true
 
+[node name="Cape" type="Polygon2D" parent="Visual"]
+position = Vector2(0, 2)
+polygon = PackedVector2Array(-13, -6, 13, -6, 17, 26, -17, 26)
+color = Color(0.42, 0.18, 0.62, 1)
+
+[node name="LegLeft" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-9, 14, -9, 28, -3, 28, -3, 14)
+color = Color(0.93, 0.93, 0.9, 1)
+
+[node name="LegRight" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(3, 14, 3, 28, 9, 28, 9, 14)
+color = Color(0.86, 0.86, 0.83, 1)
+
+[node name="BootLeft" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-10, 25, -2, 25, -2, 30, -10, 30)
+color = Color(0.83, 0.66, 0.24, 1)
+
+[node name="BootRight" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(2, 25, 10, 25, 10, 30, 2, 30)
+color = Color(0.83, 0.66, 0.24, 1)
+
 [node name="Body" type="Polygon2D" parent="Visual"]
-polygon = PackedVector2Array(-11, -5, 11, -5, 11, 15, -11, 15)
-color = Color(0.36, 0.87, 1, 1)
+polygon = PackedVector2Array(-11, -5, 11, -5, 13, 15, -13, 15)
+color = Color(0.09, 0.09, 0.1, 1)
+
+[node name="BodyTrim" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-11, -5, 11, -5, 11, -2, -11, -2)
+color = Color(0.83, 0.66, 0.24, 1)
+
+[node name="Belt" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-12, 10, 12, 10, 12, 14, -12, 14)
+color = Color(0.07, 0.07, 0.08, 1)
+
+[node name="BeltBuckle" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-4, 10, 4, 10, 4, 14, -4, 14)
+color = Color(0.88, 0.72, 0.28, 1)
+
+[node name="ArmLeft" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-11, -4, -17, -8, -17, 5, -11, 5)
+color = Color(0.93, 0.62, 0.78, 1)
+
+[node name="ArmRight" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(11, -4, 17, -8, 17, 5, 11, 5)
+color = Color(0.93, 0.62, 0.78, 1)
+
+[node name="GloveLeft" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-19, 1, -13, 1, -13, 7, -19, 7)
+color = Color(0.83, 0.66, 0.24, 1)
+
+[node name="GloveRight" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(13, 1, 19, 1, 19, 7, 13, 7)
+color = Color(0.83, 0.66, 0.24, 1)
 
 [node name="Head" type="Polygon2D" parent="Visual"]
 polygon = PackedVector2Array(-9, -18, 9, -18, 9, -6, -9, -6)
-color = Color(0.9, 0.85, 0.75, 1)
+color = Color(0.95, 0.78, 0.6, 1)
+
+[node name="Hood" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-10, -13, 10, -13, 10, -20, -10, -20)
+color = Color(0.93, 0.62, 0.78, 1)
 
 [node name="EyeLeft" type="Polygon2D" parent="Visual"]
-polygon = PackedVector2Array(-8, -15, -6, -15, -6, -13, -8, -13)
+polygon = PackedVector2Array(-7, -13, -3, -13, -3, -11, -7, -11)
 color = Color(0.1, 0.1, 0.1, 1)
 
 [node name="EyeRight" type="Polygon2D" parent="Visual"]
-polygon = PackedVector2Array(6, -15, 8, -15, 8, -13, 6, -13)
+polygon = PackedVector2Array(3, -13, 7, -13, 7, -11, 3, -11)
 color = Color(0.1, 0.1, 0.1, 1)
-
-[node name="PupilLeft" type="Polygon2D" parent="Visual"]
-polygon = PackedVector2Array(-7.5, -14.5, -6.5, -14.5, -6.5, -13.5, -7.5, -13.5)
-color = Color(0.2, 0.5, 1, 1)
-
-[node name="PupilRight" type="Polygon2D" parent="Visual"]
-polygon = PackedVector2Array(6.5, -14.5, 7.5, -14.5, 7.5, -13.5, 6.5, -13.5)
-color = Color(0.2, 0.5, 1, 1)
-
-[node name="ArmLeft" type="Polygon2D" parent="Visual"]
-polygon = PackedVector2Array(-11, -4, -16, -8, -16, 4, -11, 4)
-color = Color(0.36, 0.87, 1, 1)
-
-[node name="ArmRight" type="Polygon2D" parent="Visual"]
-polygon = PackedVector2Array(11, -4, 16, -8, 16, 4, 11, 4)
-color = Color(0.36, 0.87, 1, 1)
-
-[node name="LegLeft" type="Polygon2D" parent="Visual"]
-polygon = PackedVector2Array(-7, 15, -7, 28, -3, 28, -3, 15)
-color = Color(0.2, 0.7, 0.95, 1)
-
-[node name="LegRight" type="Polygon2D" parent="Visual"]
-polygon = PackedVector2Array(3, 15, 3, 28, 7, 28, 7, 15)
-color = Color(0.2, 0.7, 0.95, 1)
 
 [node name="DashTrail" type="CPUParticles2D" parent="."]
 emitting = false
@@ -72,7 +101,7 @@ explosiveness = 0.5
 speed = 50.0
 gravity = Vector2(0, 0)
 spread = 45.0
-color = Color(0.36, 0.94, 1, 0.7)
+color = Color(0.72, 0.42, 0.95, 0.7)
 color_ramp = SubResource("1_color_ramp")
 scale = 0.6
 draw_order = 0
