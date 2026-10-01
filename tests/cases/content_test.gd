@@ -23,6 +23,17 @@ const RIG_PROPS := [
 	"Visual/ArmRight:position",
 	"Visual/LegLeft:position",
 	"Visual/LegRight:position",
+	# Asset 001 folds the limbs by rotation for the seated idle pose. Rotation is
+	# a pose too: without these tracks a limb that the idle rotated would stay
+	# rotated after the player started running.
+	"Visual/ArmLeft:rotation",
+	"Visual/ArmRight:rotation",
+	"Visual/LegLeft:rotation",
+	"Visual/LegRight:rotation",
+	# The seated pose also offsets and squashes the rig root.
+	"Visual:position",
+	"Visual:scale",
+	"Visual/Cape:position",
 	"Visual:rotation",
 ]
 
@@ -282,6 +293,93 @@ func test_long_levels_have_enough_checkpoints() -> void:
 
 # --- character rig ---------------------------------------------------------
 
+func test_zone01_villain_is_in_every_level() -> void:
+	# Asset 003 is specified as the villain of ALL Zone 01 phases, boss included.
+	# A missing glyph here means a level ships with no antagonist.
+	for level_id in EXPECTED_LEVELS:
+		var level := _load_level(level_id)
+		if level == null:
+			assert_true(false, "%s failed to parse" % level_id)
+			continue
+		# Levels also carry patrol/flyer/chaser enemies; only the presence of the
+		# villain is required, not the absence of the others.
+		var tyrants := 0
+		for spawn in level.enemy_spawns:
+			if String(spawn.get("type", "")) == "enemy_hybrid_tyrant":
+				tyrants += 1
+		assert_eq(float(tyrants), 1.0,
+			"%s: expected 1 hybrid tyrant, found %d"
+			% [level_id, tyrants])
+
+
+func test_villain_glyph_is_registered_everywhere() -> void:
+	# The glyph has to be known to the tile table, the content-report map and the
+	# level spawner, or the '7' in the grids parses as nothing at all.
+	assert_eq(String(TileType.object_kind("7")), "enemy_hybrid_tyrant",
+		"tile_type.gd does not map glyph '7'")
+	assert_true(ResourceLoader.exists("res://scenes/entities/EnemyHybridTyrant.tscn"),
+		"the villain scene does not exist")
+	var level_script := load("res://src/entities/enemy_hybrid_tyrant.gd")
+	assert_not_null(level_script, "the villain script does not load")
+
+
+func test_villain_sits_on_solid_ground() -> void:
+	# A '7' placed over a gap or a platform drops the player straight past it.
+	# The boss level was checked by hand once and placed on liquid; verify all.
+	for level_id in EXPECTED_LEVELS:
+		var level := _load_level(level_id)
+		if level == null:
+			continue
+		var grid := _read_grid(level_id)
+		if grid.is_empty():
+			continue
+		var width: int = String(grid[0]).length()
+		for spawn in level.enemy_spawns:
+			# Only the villain is under test; other enemy glyphs are free to fly or
+			# hover, so filtering by type is required for the ground check.
+			if String(spawn.get("type", "")) != "enemy_hybrid_tyrant":
+				continue
+			# Spawn "pos" is in world pixels, not tile coordinates: LevelData stores
+			# the tile centre, so the tile has to be recovered by dividing. The
+			# centre is x*T+16, so the tile column is floor((x-16)/T).
+			var pos: Vector2 = spawn.get("pos", Vector2(-999, -999))
+			var x := int(floor((pos.x - LevelData.TILE_SIZE * 0.5) / LevelData.TILE_SIZE))
+			var y := int(floor((pos.y - LevelData.TILE_SIZE * 0.5) / LevelData.TILE_SIZE))
+			if x < 0 or y < 0 or x >= width or y + 1 >= grid.size():
+				assert_true(false,
+					"%s: spawn %s maps to tile (%d,%d), outside the grid"
+					% [level_id, pos, x, y])
+				continue
+			var below := String(grid[y + 1])[x]
+			assert_true(TileType.is_solid(below),
+				"%s: villain at tile (%d,%d) stands on '%s', which is not solid"
+				% [level_id, x, y, below])
+
+
+func test_sexta_feira_mascot_is_on_the_character_select() -> void:
+	# Asset 002 is the UI identity. If the mascot node drops out of the scene the
+	# brand disappears silently, since nothing else references it.
+	var packed: PackedScene = load("res://scenes/ui/CharacterSelect.tscn")
+	var screen := packed.instantiate()
+	if screen == null:
+		assert_true(false, "CharacterSelect.tscn failed to instantiate")
+		return
+	assert_not_null(screen.get_node_or_null("SextaFeira"),
+		"CharacterSelect.tscn is missing the SEXTA-FEIRA mascot")
+	screen.free()
+
+	var script := load("res://scenes/ui/mascot_sexta_seira.gd")
+	assert_not_null(script, "the mascot script does not load")
+	# The brief names four expressions and five personality traits; both grids
+	# have to be complete or the asset is only half implemented.
+	assert_eq(float(MascotSextaFeira.Mood.size()), 4.0,
+		"mascot should cycle the 4 expressions from the brief")
+	assert_eq(float(MascotSextaFeira.PERSONALITY.size()), 5.0,
+		"mascot should list the 5 personality traits from the brief")
+	assert_true(String(MascotSextaFeira.SLOGAN).begins_with("SEXTA-FEIRA"),
+		"the slogan from the brief is missing")
+
+
 func test_player_scene_loads_and_has_rig_nodes() -> void:
 	var packed: PackedScene = load("res://scenes/Player.tscn")
 	assert_not_null(packed, "Player.tscn failed to load")
@@ -296,6 +394,113 @@ func test_player_scene_loads_and_has_rig_nodes() -> void:
 			"DashTrail", "Camera", "AnimationPlayer"]:
 		assert_not_null(player.get_node_or_null(node_path),
 			"Player.tscn missing node %s" % node_path)
+	# Costume pieces for the Asset 001 cosplayer (Majin Buu): cape, hood, gold
+	# gloves and boots, and the black vest with its gold trim and M buckle.
+	for node_path in ["Visual/Cape", "Visual/Hood", "Visual/GloveLeft",
+			"Visual/GloveRight", "Visual/BootLeft", "Visual/BootRight",
+			"Visual/BodyTrim", "Visual/Belt", "Visual/BeltBuckle"]:
+		assert_not_null(player.get_node_or_null(node_path),
+			"Player.tscn missing costume node %s" % node_path)
+	player.free()
+
+
+func test_player_costume_colors_match_asset_001() -> void:
+	# The costume is defined by colour as much as by shape. Guards against a
+	# future edit quietly reverting the cosplay to the old cyan rig.
+	var packed: PackedScene = load("res://scenes/Player.tscn")
+	var player := packed.instantiate()
+	if player == null:
+		nope("Player.tscn failed to instantiate")
+		return
+	var expected := {
+		"Cape": Color(0.42, 0.18, 0.62),       # satin purple cape
+		"Body": Color(0.09, 0.09, 0.1),        # black vest
+		"BodyTrim": Color(0.83, 0.66, 0.24),   # gold edging
+		"Belt": Color(0.07, 0.07, 0.08),       # black belt
+		"BeltBuckle": Color(0.88, 0.72, 0.28), # gold M buckle
+		"GloveLeft": Color(0.83, 0.66, 0.24),  # metallic gold gloves
+		"Hood": Color(0.93, 0.62, 0.78),       # pink hood and sleeves
+	}
+	for node_name in expected:
+		var poly := player.get_node_or_null("Visual/" + node_name) as Polygon2D
+		if poly == null:
+			assert_true(false, "missing Polygon2D Visual/%s" % node_name)
+			continue
+		var want: Color = expected[node_name]
+		assert_true(poly.color.is_equal_approx(want),
+			"Visual/%s colour is %s, expected %s" % [node_name, poly.color, want])
+	player.free()
+
+
+func test_idle_animates_the_seated_rest_pose() -> void:
+	# Asset 001: seated, legs crossed, hands together on the lap. If the idle ever
+	# loses the fold the character silently reverts to standing, which still looks
+	# valid enough to ship by accident.
+	var player := _spawn_player()
+	if player == null:
+		nope("could not spawn player")
+		return
+	var anim: AnimationPlayer = player.get_node("AnimationPlayer")
+	var idle := anim.get_animation("idle")
+	if idle == null:
+		nope("idle animation missing")
+		player.free()
+		return
+	var folded := ["Visual/ArmLeft:rotation", "Visual/ArmRight:rotation",
+		"Visual/LegLeft:rotation", "Visual/LegRight:rotation"]
+	for prop_path in folded:
+		var track := idle.find_track(NodePath(prop_path), Animation.TYPE_VALUE)
+		assert_gte(float(track), 0.0, "idle has no track for %s" % prop_path)
+		if track < 0:
+			continue
+		# The first key must not be the neutral rotation, or nothing is folded.
+		var value: Variant = idle.track_get_key_value(track, 0)
+		assert_false(is_zero_approx(absf(float(value))),
+			"idle %s starts unfolded (rotation %s)" % [prop_path, value])
+
+	# The rig is laid down and squashed, and sits below its neutral origin.
+	var pos_track := idle.find_track(NodePath("Visual:position"), Animation.TYPE_VALUE)
+	assert_gte(float(pos_track), 0.0, "idle has no Visual:position track")
+	if pos_track >= 0:
+		var offset: Variant = idle.track_get_key_value(pos_track, 0)
+		assert_gte(float((offset as Vector2).y), 0.0,
+			"seated idle should sit below the neutral origin, got %s" % offset)
+	player.free()
+
+
+func test_moving_animations_stand_up_again() -> void:
+	# The seated idle offsets and rotates limbs; run/jump/dash must clear all of
+	# it. AnimationPlayer does not blend between animations, so a value the idle
+	# set and run does not touch simply persists.
+	var player := _spawn_player()
+	if player == null:
+		nope("could not spawn player")
+		return
+	var anim: AnimationPlayer = player.get_node("AnimationPlayer")
+	var must_clear := ["Visual:position", "Visual:scale",
+		"Visual/ArmLeft:rotation", "Visual/ArmRight:rotation",
+		"Visual/LegLeft:rotation", "Visual/LegRight:rotation"]
+	for state in ["run", "jump", "fall", "dash", "attack", "hurt"]:
+		var state_anim := anim.get_animation(state)
+		if state_anim == null:
+			assert_true(false, "animation '%s' missing" % state)
+			continue
+		for prop_path in must_clear:
+			var track := state_anim.find_track(NodePath(prop_path), Animation.TYPE_VALUE)
+			assert_gte(float(track), 0.0, "%s has no track for %s" % [state, prop_path])
+			if track < 0:
+				continue
+			var value: Variant = state_anim.track_get_key_value(track, 0)
+			if prop_path.ends_with("rotation"):
+				assert_true(is_zero_approx(absf(float(value))),
+					"%s %s starts folded (rotation %s)" % [state, prop_path, value])
+			elif prop_path == "Visual:scale":
+				assert_true((value as Vector2).is_equal_approx(Vector2.ONE),
+					"%s Visual:scale starts squashed (%s)" % [state, value])
+			else:
+				# Vector2 has no is_zero() in Godot 4; compare against the literal.
+				assert_true((value as Vector2).is_equal_approx(Vector2.ZERO),
+					"%s Visual:position starts offset (%s)" % [state, value])
 	player.free()
 
 
