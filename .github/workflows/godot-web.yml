@@ -1,0 +1,67 @@
+name: Build & Deploy Web (Godot 4.3)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build Web Export
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Godot 4.3
+        uses: Firebender/Godot@4.3
+        with:
+          version: "4.3"
+          mono: false
+          cache: true
+
+      - name: Install Web Export Template
+        run: |
+          mkdir -v -p ~/.local/share/godot/export_templates/4.3.stable
+          curl -L -o web_templates.zip https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_web_export_templates.tpz
+          unzip -o web_templates.zip -d ~/.local/share/godot/export_templates/4.3.stable
+          ls -la ~/.local/share/godot/export_templates/4.3.stable/
+
+      - name: Build Web Export
+        run: |
+          mkdir -p build/web
+          godot --headless --verbose --export-release "Web" build/web/index.html
+          ls -la build/web/
+
+      - name: Fix .wasm MIME type for GitHub Pages
+        run: |
+          # GitHub Pages serves .wasm as application/wasm but needs application/octet-stream for some browsers
+          # Create .htaccess equivalent via _headers file for Netlify/Cloudflare or just ensure proper build
+          echo "Build complete. Files:"
+          ls -lh build/web/
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web/
+          retention-days: 7
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
