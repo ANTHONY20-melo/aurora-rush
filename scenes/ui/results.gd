@@ -88,9 +88,12 @@ func _populate() -> void:
 	_bd_deaths.text = "Penalidade mortes: +%.2fs" % explain["death_penalty"]
 	
 	var ladder := Ranking.normalized_targets(targets)
-	var collect_bonus := (_result.completion_ratio() * 10.0 * Ranking.COLLECTIBLE_BONUS_PER_DECILE * ladder["s"])
-	var secret_bonus := (_result.secret_ratio() * 3.0 * Ranking.SECRET_BONUS * ladder["s"])
-	var score_bonus := minf(Ranking.SCORE_BONUS_CAP, float(_result.score) / 100000.0 * 10.0 * Ranking.SCORE_BONUS_PER_10K) * ladder["s"]
+	# ladder is a Dictionary, so ladder["s"] is a Variant. Without the explicit
+	# float() and type annotation the compiler cannot infer these and the whole
+	# Results screen fails to parse.
+	var collect_bonus: float = (_result.completion_ratio() * 10.0 * Ranking.COLLECTIBLE_BONUS_PER_DECILE * float(ladder["s"]))
+	var secret_bonus: float = (_result.secret_ratio() * 3.0 * Ranking.SECRET_BONUS * float(ladder["s"]))
+	var score_bonus: float = minf(Ranking.SCORE_BONUS_CAP, float(_result.score) / 100000.0 * 10.0 * Ranking.SCORE_BONUS_PER_10K) * float(ladder["s"])
 	
 	_bd_collectibles.text = "Bonus coletaveis: -%.2fs" % collect_bonus
 	_bd_secrets.text = "Bonus segredos: -%.2fs" % secret_bonus
@@ -116,7 +119,10 @@ func _on_retry() -> void:
 
 func _on_map() -> void:
 	AudioDirector.play_sfx("ui_confirm", -4.0)
-	SceneDirector.to_world_map()
+	# WorldMap.tscn does not exist yet. Navigating to it left the player on a black
+	# curtain: _swap failed, the fade had already run, and current_screen claimed
+	# the map had loaded. MainMenu is the real fallback until the map is built.
+	SceneDirector.to_main_menu()
 
 func _on_next() -> void:
 	AudioDirector.play_sfx("ui_confirm", -4.0)
@@ -126,4 +132,5 @@ func _on_next() -> void:
 			GameManager.begin_run(next_id, GameManager.mode)
 			SceneDirector.to_level(next_id)
 		else:
-			SceneDirector.to_world_map()
+			# Last level of the campaign: there is nothing next, so go somewhere real.
+			SceneDirector.to_main_menu()

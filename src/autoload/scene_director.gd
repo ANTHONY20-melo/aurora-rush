@@ -46,22 +46,35 @@ func _build_curtain() -> void:
 	layer.add_child(_curtain)
 
 
-func _swap(path: String) -> void:
+func _swap(path: String) -> bool:
 	if not ResourceLoader.exists(path):
 		push_error("SceneDirector: scene not found %s" % path)
-		return
+		return false
 	var error := get_tree().change_scene_to_file(path)
 	if error != OK:
 		push_error("SceneDirector: change_scene_to_file(%s) failed (%d)" % [path, error])
+		return false
+	return true
 
 
 ## Fade to black, load, fade back. Returns when the new scene is in place.
 func go_to(path: String, screen: int) -> void:
 	if _busy:
 		return
+	# Refuse before fading out. A missing destination used to fail inside _swap,
+	# which returned quietly, leaving the player on a black curtain with
+	# current_screen reporting a screen that never loaded.
+	if not ResourceLoader.exists(path):
+		push_error("SceneDirector: refusing to navigate to missing scene %s" % path)
+		return
 	_busy = true
 	await _fade(1.0, FADE_OUT)
-	_swap(path)
+	if not _swap(path):
+		# The fade already happened; bring the curtain back so the player is not
+		# left staring at black, and keep the state we actually came from.
+		await _fade(0.0, FADE_IN)
+		_busy = false
+		return
 	current_screen = screen
 	# One frame so the new scene has laid out before revealing it.
 	await get_tree().process_frame
@@ -77,8 +90,8 @@ func _fade(target_alpha: float, duration: float) -> void:
 
 
 func instant_go_to(path: String, screen: int) -> void:
-	_swap(path)
-	current_screen = screen
+	if _swap(path):
+		current_screen = screen
 
 
 # --- named destinations -----------------------------------------------------

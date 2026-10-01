@@ -173,7 +173,7 @@ text = "TENTAR NOVAMENTE"
 custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "MAPA"
+text = "MENU"
 
 [node name="Next" type="Button" parent="Center/Column/Buttons"]
 custom_minimum_size = Vector2(160, 44)
