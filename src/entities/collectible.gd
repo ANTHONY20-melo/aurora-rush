@@ -1,12 +1,13 @@
-class_name Collectible
 extends Area2D
-## Base collectible: energy, crystal, fragment, special.
-## Each kind has a value and a visual signature.
+class_name Collectible
+## Collectible item: energy, crystal, fragment, or special.
+## Floats and rotates; collected on contact with player hitbox.
 
 @export var kind: String = "collectible_energy"
 @export var value: int = 1
 @export var float_amplitude: float = 4.0
 @export var float_speed: float = 2.5
+@export var rotation_speed: float = 1.0
 
 var _base_y: float = 0.0
 var _time: float = 0.0
@@ -23,7 +24,7 @@ func _process(delta: float) -> void:
 		return
 	_time += delta
 	position.y = _base_y + sin(_time * float_speed) * float_amplitude
-	rotation = sin(_time * 0.5) * 0.12
+	rotation = sin(_time * rotation_speed) * 0.15
 
 func _on_area_entered(area: Area2D) -> void:
 	if _collected or not area.is_in_group("player_hitbox"):

@@ -100,7 +100,8 @@ func _spawn_entities() -> void:
 	# Tutorial prompts
 	for prompt_data in level.tutorial_prompts:
 		var tp: Node = load(TUTORIAL_PROMPT_SCENE).instantiate()
-		tp.global_position = Vector2(prompt_data["at"])
+		var at: Array = prompt_data["at"]
+		tp.global_position = Vector2(float(at[0]), float(at[1]))
 		tp.text = String(prompt_data["text"])
 		tp.icon = String(prompt_data.get("icon", ""))
 		add_child(tp)
