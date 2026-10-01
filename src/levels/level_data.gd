@@ -190,8 +190,14 @@ func _absorb_glyph(glyph: String, x: int, y: int) -> void:
 		set(POINTS[kind], center if kind == "exit" or kind == "boss_trigger" else base)
 		if kind == "boss_trigger":
 			has_boss = true
-		elif kind == "checkpoint":
-			checkpoints.append(base)
+		return
+
+	if kind == "checkpoint":
+		# Checkpoints are a LIST, not a single named point, so they get their own
+		# branch. This used to sit inside the `if POINTS.has(kind)` above, where it
+		# was unreachable: "checkpoint" is not a key of POINTS, so the condition was
+		# never true and no shipped level ever produced a single checkpoint.
+		checkpoints.append(base)
 		return
 
 	if kind == "area_underwater" or kind == "area_highspeed" or kind == "area_secret":
