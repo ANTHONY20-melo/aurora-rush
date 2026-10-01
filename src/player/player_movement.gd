@@ -407,3 +407,8 @@ func can_jump() -> bool:
 
 func jump_charges_left() -> int:
 	return maxi(0, config.air_jumps + 1 - jumps_used)
+
+## External boost (from boost pad). Overrides horizontal velocity temporarily.
+func apply_boost(boost_velocity: Vector2, duration: float) -> void:
+	body.velocity = boost_velocity
+	# Could add a boost timer here if needed for visual feedback

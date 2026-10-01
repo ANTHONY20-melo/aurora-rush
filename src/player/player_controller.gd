@@ -21,10 +21,17 @@ var movement: PlayerMovement = null
 
 var _config: PlayerMovementConfig
 var _visual: Polygon2D
+var _dash_trail: CPUParticles2D
+var _camera: Camera2D
 var _step_timer: float = 0.0
 var _was_jump_down: bool = false
 var _was_dash_down: bool = false
 var _was_attack_down: bool = false
+
+# Camera shake
+var _shake_timer: float = 0.0
+var _shake_magnitude: float = 0.0
+var _shake_decay: float = 15.0
 
 
 func _ready() -> void:
@@ -36,6 +43,8 @@ func _ready() -> void:
 	body = KinematicBody.new()
 	movement = PlayerMovement.new(_config, body)
 	_visual = $Visual
+	_dash_trail = $DashTrail
+	_camera = $Camera
 
 
 ## Called by Level.gd with the grid it already holds, before the first frame.
@@ -62,6 +71,8 @@ func _physics_process(delta: float) -> void:
 
 	_fire_feedback()
 	_update_footsteps(delta)
+	_update_dash_trail()
+	_update_camera_shake(delta)
 	_sync_visual()
 
 
@@ -94,15 +105,50 @@ func _fire_feedback() -> void:
 		AudioDirector.play_sfx("player_double_jump", -5.0)
 	if movement.dash_started_this_frame:
 		AudioDirector.play_sfx("player_dash", -5.0)
+		_add_camera_shake(4.0, 0.15)
 	if body.just_landed:
 		var hard := body.land_speed > _config.hard_landing_speed
 		AudioDirector.play_sfx("player_land_hard" if hard else "player_land", -6.0)
+		if hard:
+			_add_camera_shake(8.0, 0.25)
 	if movement.is_dashing:
 		_visual.modulate = Color(0.62, 0.94, 1.0)
 	elif movement.is_attacking:
 		_visual.modulate = Color(1.0, 0.85, 0.55)
 	else:
 		_visual.modulate = Color.WHITE
+
+
+func _update_dash_trail() -> void:
+	if _dash_trail == null:
+		return
+	var dashing := movement.is_dashing
+	if dashing and not _dash_trail.emitting:
+		_dash_trail.emitting = true
+		_dash_trail.initial_direction = Vector2(-float(movement.facing), 0.0).rotated(randf_range(-0.3, 0.3))
+		_dash_trail.restart()
+	elif not dashing and _dash_trail.emitting:
+		_dash_trail.emitting = false
+
+
+func _add_camera_shake(magnitude: float, duration: float) -> void:
+	_shake_magnitude = maxf(_shake_magnitude, magnitude)
+	_shake_timer = maxf(_shake_timer, duration)
+
+
+func _update_camera_shake(delta: float) -> void:
+	if _shake_timer <= 0.0:
+		if _camera.offset != Vector2.ZERO:
+			_camera.offset = _camera.offset.move_toward(Vector2.ZERO, 30.0 * delta)
+		return
+	
+	_shake_timer -= delta
+	var offset := Vector2(
+		randf_range(-1.0, 1.0) * _shake_magnitude,
+		randf_range(-1.0, 1.0) * _shake_magnitude * 0.5
+	)
+	_camera.offset = offset
+	_shake_magnitude = maxf(0.0, _shake_magnitude - _shake_decay * delta)
 
 
 ## Footsteps on a cadence, not once per physics tick, so they do not machine-gun
@@ -121,6 +167,12 @@ func _sync_visual() -> void:
 	_visual.position = body.position
 	# Polygon2D has no built-in flip; mirroring x is the cheapest correct way.
 	_visual.scale.x = -1.0 if movement.facing < 0 else 1.0
+	
+	# Camera zoom based on speed ratio
+	if _camera:
+		var speed_ratio := movement.speed_ratio()
+		var target_zoom := lerpf(1.0, 1.15, speed_ratio)
+		_camera.zoom = _camera.zoom.move_toward(Vector2(target_zoom, target_zoom), 2.0 * (1.0 / 60.0))
 
 
 func _is_inside_area(kind: String) -> bool:
@@ -131,3 +183,7 @@ func _is_inside_area(kind: String) -> bool:
 		if String(area["type"]) == kind and (area["rect"] as Rect2).intersects(body_rect):
 			return true
 	return false
+
+## Called by boost pads to give the player a speed burst.
+func apply_boost(boost_velocity: Vector2, duration: float) -> void:
+	movement.apply_boost(boost_velocity, duration)

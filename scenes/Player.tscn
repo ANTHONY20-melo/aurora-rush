@@ -2,6 +2,10 @@
 
 [ext_resource type="Script" path="res://src/player/player_controller.gd" id="1_controller"]
 
+[sub_resource type="Gradient" id="1_color_ramp"]
+offsets = PackedFloat32Array(0.0, 1.0)
+colors = PackedColorArray(0.62, 0.94, 1.0, 0.9, 0.36, 0.87, 1.0, 0.0)
+
 [node name="Player" type="Node2D"]
 y_sort_enabled = true
 script = ExtResource("1_controller")
@@ -10,6 +14,29 @@ script = ExtResource("1_controller")
 polygon = PackedVector2Array(-11, -15, 11, -15, 11, 15, -11, 15)
 color = Color(0.36, 0.87, 1, 1)
 
+[node name="DashTrail" type="CPUParticles2D" parent="."]
+process_mode = 1
+emitting = false
+one_shot = false
+explosiveness = 0.0
+amount = 16
+lifetime = 0.25
+speed = 0.0
+speed_random = 0.0
+scale = 1.0
+scale_random = 0.5
+gravity = Vector2(0, 0)
+linear_accel = Vector2(0, 0)
+radial_accel = 0.0
+tangential_accel = 0.0
+spread = 180.0
+initial_direction = Vector2(0, 0)
+angular_velocity = 0.0
+angular_velocity_random = 0.0
+color = Color(0.62, 0.94, 1.0, 0.8)
+color_ramp = SubResource("1_color_ramp")
+
 [node name="Camera" type="Camera2D" parent="."]
 position_smoothing_enabled = true
 position_smoothing_speed = 7.0
+zoom = Vector2(1.0, 1.0)

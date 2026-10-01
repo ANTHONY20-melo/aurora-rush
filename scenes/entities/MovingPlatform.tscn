@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0aurorarushmovingplatform"]
+
+[ext_resource type="Script" path="res://src/entities/moving_platform.gd" id="1_platform"]
+
+[sub_resource type="RectangleShape2D" id="1_shape"]
+size = Vector2(96, 16)
+
+[node name="MovingPlatform" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1_platform")
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+shape = SubResource("1_shape")

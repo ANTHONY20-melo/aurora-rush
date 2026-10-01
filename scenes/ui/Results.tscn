@@ -1,0 +1,182 @@
+[gd_scene load_steps=3 format=3 uid="uid://b0aurorarushresults"]
+
+[ext_resource type="Script" path="res://scenes/ui/results.gd" id="1_results"]
+[ext_resource type="Script" path="res://src/core/format.gd" id="2_fmt"]
+
+[node name="Results" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_results")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.03, 0.05, 0.92)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Column" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Center/Column"]
+layout_mode = 2
+text = "FASE CONCLUIDA"
+
+[node name="RankContainer" type="HBoxContainer" parent="Center/Column"]
+layout_mode = 2
+alignment = 1
+
+[node name="RankLabel" type="Label" parent="Center/Column/RankContainer"]
+layout_mode = 2
+text = "RANK"
+
+[node name="RankValue" type="Label" parent="Center/Column/RankContainer"]
+layout_mode = 2
+text = "C"
+
+[node name="Stats" type="VBoxContainer" parent="Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TimeRow" type="HBoxContainer" parent="Center/Column/Stats"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TimeLabel" type="Label" parent="Center/Column/Stats/TimeRow"]
+layout_mode = 2
+text = "Tempo:"
+
+[node name="TimeValue" type="Label" parent="Center/Column/Stats/TimeRow"]
+layout_mode = 2
+text = "00:00.00"
+
+[node name="ScoreRow" type="HBoxContainer" parent="Center/Column/Stats"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="Center/Column/Stats/ScoreRow"]
+layout_mode = 2
+text = "Pontuacao:"
+
+[node name="ScoreValue" type="Label" parent="Center/Column/Stats/ScoreRow"]
+layout_mode = 2
+text = "0"
+
+[node name="CollectiblesRow" type="HBoxContainer" parent="Center/Column/Stats"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="CollectiblesLabel" type="Label" parent="Center/Column/Stats/CollectiblesRow"]
+layout_mode = 2
+text = "Coletaveis:"
+
+[node name="CollectiblesValue" type="Label" parent="Center/Column/Stats/CollectiblesRow"]
+layout_mode = 2
+text = "0/0"
+
+[node name="SecretsRow" type="HBoxContainer" parent="Center/Column/Stats"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="SecretsLabel" type="Label" parent="Center/Column/Stats/SecretsRow"]
+layout_mode = 2
+text = "Segredos:"
+
+[node name="SecretsValue" type="Label" parent="Center/Column/Stats/SecretsRow"]
+layout_mode = 2
+text = "0/0"
+
+[node name="DeathsRow" type="HBoxContainer" parent="Center/Column/Stats"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="DeathsLabel" type="Label" parent="Center/Column/Stats/DeathsRow"]
+layout_mode = 2
+text = "Mortes:"
+
+[node name="DeathsValue" type="Label" parent="Center/Column/Stats/DeathsRow"]
+layout_mode = 2
+text = "0"
+
+[node name="Gap" type="Control" parent="Center/Column"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+
+[node name="Breakdown" type="VBoxContainer" parent="Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BreakdownTitle" type="Label" parent="Center/Column/Breakdown"]
+layout_mode = 2
+text = "DETALHES DO RANK"
+
+[node name="BreakdownTime" type="Label" parent="Center/Column/Breakdown"]
+layout_mode = 2
+text = "Tempo base: 00:00.00"
+
+[node name="BreakdownDeaths" type="Label" parent="Center/Column/Breakdown"]
+layout_mode = 2
+text = "Penalidade mortes: +0.00s"
+
+[node name="BreakdownCollectibles" type="Label" parent="Center/Column/Breakdown"]
+layout_mode = 2
+text = "Bonus coletaveis: -0.00s"
+
+[node name="BreakdownSecrets" type="Label" parent="Center/Column/Breakdown"]
+layout_mode = 2
+text = "Bonus segredos: -0.00s"
+
+[node name="BreakdownScore" type="Label" parent="Center/Column/Breakdown"]
+layout_mode = 2
+text = "Bonus pontuacao: -0.00s"
+
+[node name="BreakdownEffective" type="Label" parent="Center/Column/Breakdown"]
+layout_mode = 2
+text = "Tempo efetivo: 00:00.00"
+
+[node name="Gap2" type="Control" parent="Center/Column"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Retry" type="Button" parent="Center/Column/Buttons"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "TENTAR NOVAMENTE"
+
+[node name="Map" type="Button" parent="Center/Column/Buttons"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "MAPA"
+
+[node name="Next" type="Button" parent="Center/Column/Buttons"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "PROXIMA FASE"

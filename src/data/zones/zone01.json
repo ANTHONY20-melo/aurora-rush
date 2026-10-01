@@ -1,12 +1,17 @@
 ﻿{
     "id":  "zone01",
     "index":  1,
-    "name":  "FLORESTA VIVA",
+    "name":  "FLORESTA AURORA",
     "tagline":  "Raizes antigas, energia instavel.",
     "story":  "A floresta cresceu em cima de uma falha no Nucleo Aurora.",
     "music":  "zone01",
     "boss_music":  "zone01_boss",
     "levels":  [
-                   "zone01_01"
-               ]
+                    "zone01_01",
+                    "zone01_02",
+                    "zone01_03",
+                    "zone01_04"
+                ],
+    "boss_level_id":  "zone01_boss",
+    "requires_zone":  ""
 }

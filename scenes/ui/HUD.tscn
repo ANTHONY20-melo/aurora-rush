@@ -1,0 +1,67 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0aurorarushhud"]
+
+[ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopLeft" type="VBoxContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/separation = 4
+custom_minimum_size = Vector2(200, 0)
+
+[node name="EnergyBar" type="HBoxContainer" parent="Root/TopLeft"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnergyIcon" type="Label" parent="Root/TopLeft/EnergyBar"]
+layout_mode = 2
+text = "ENERGIA"
+
+[node name="EnergyValue" type="Label" parent="Root/TopLeft/EnergyBar"]
+layout_mode = 2
+text = "100"
+
+[node name="EnergyFill" type="Control" parent="Root/TopLeft/EnergyBar"]
+layout_mode = 0
+custom_minimum_size = Vector2(120, 10)
+
+[node name="EnergyFillBg" type="ColorRect" parent="Root/TopLeft/EnergyBar/EnergyFill"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.15, 0.2, 0.8)
+
+[node name="EnergyFillBar" type="ColorRect" parent="Root/TopLeft/EnergyBar/EnergyFill"]
+layout_mode = 0
+custom_minimum_size = Vector2(120, 10)
+color = Color(0.36, 0.87, 1.0, 1.0)
+
+[node name="TimeScore" type="HBoxContainer" parent="Root/TopLeft"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TimeLabel" type="Label" parent="Root/TopLeft/TimeScore"]
+layout_mode = 2
+text = "00:00.00"
+
+[node name="ScoreLabel" type="Label" parent="Root/TopLeft/TimeScore"]
+layout_mode = 2
+text = "0"
+
+[node name="Combo" type="Label" parent="Root/TopLeft"]
+layout_mode = 2
+text = ""
+visible = false

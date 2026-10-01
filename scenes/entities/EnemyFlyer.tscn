@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0aurorarushenemyflyer"]
+
+[ext_resource type="Script" path="res://src/entities/enemy_flyer.gd" id="1_enemy"]
+
+[sub_resource type="RectangleShape2D" id="1_shape"]
+size = Vector2(28, 16)
+
+[node name="EnemyFlyer" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 17
+script = ExtResource("1_enemy")
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+shape = SubResource("1_shape")

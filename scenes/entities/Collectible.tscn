@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0aurorarushcollectible"]
+
+[ext_resource type="Script" path="res://src/entities/collectible.gd" id="1_collectible"]
+
+[sub_resource type="CircleShape2D" id="1_shape"]
+radius = 14.0
+
+[node name="Collectible" type="Area2D"]
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("1_collectible")
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+shape = SubResource("1_shape")

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0aurorashtutorialprompt"]
+
+[ext_resource type="Script" path="res://src/entities/tutorial_prompt.gd" id="1_prompt"]
+
+[node name="TutorialPrompt" type="Node2D"]
+script = ExtResource("1_prompt")

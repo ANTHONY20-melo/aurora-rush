@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0aurorarushbossguardianarbor"]
+
+[ext_resource type="Script" path="res://src/entities/boss_guardian_arbor.gd" id="1_boss"]
+
+[sub_resource type="RectangleShape2D" id="1_shape"]
+size = Vector2(100, 80)
+
+[node name="BossGuardianArbor" type="CharacterBody2D"]
+collision_layer = 10
+collision_mask = 19
+script = ExtResource("1_boss")
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+shape = SubResource("1_shape")
+
+[node name="WeakpointArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 4
+monitoring = true
+monitorable = false
+
+[node name="WeakpointCollision" type="CollisionShape2D" parent="WeakpointArea"]
+shape = SubResource("2_shape")
+
+[sub_resource type="CircleShape2D" id="2_shape"]
+radius = 30.0
