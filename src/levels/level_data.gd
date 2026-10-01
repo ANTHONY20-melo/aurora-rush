@@ -152,6 +152,7 @@ const OBJECT_SINK := {
 	"enemy_bomber": "enemy_spawns",
 	"enemy_tank": "enemy_spawns",
 	"enemy_sentinel": "enemy_spawns",
+	"enemy_hybrid_tyrant": "enemy_spawns",
 	"hazard_laser": "hazard_spawns",
 	"hazard_crush": "hazard_spawns",
 	"hazard_crumble": "hazard_spawns",

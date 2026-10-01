@@ -9,6 +9,8 @@ const COLLECTIBLE_SCENE := "res://scenes/entities/Collectible.tscn"
 const ENEMY_PATROL_SCENE := "res://scenes/entities/EnemyPatrol.tscn"
 const ENEMY_FLYER_SCENE := "res://scenes/entities/EnemyFlyer.tscn"
 const ENEMY_CHASER_SCENE := "res://scenes/entities/EnemyChaser.tscn"
+## Asset 003, the Zone 1 villain: the man-dinosaur hybrid.
+const ENEMY_HYBRID_TYRANT_SCENE := "res://scenes/entities/EnemyHybridTyrant.tscn"
 const CHECKPOINT_SCENE := "res://scenes/entities/Checkpoint.tscn"
 const SECRET_AREA_SCENE := "res://scenes/entities/SecretArea.tscn"
 const MOVING_PLATFORM_SCENE := "res://scenes/entities/MovingPlatform.tscn"
@@ -146,6 +148,7 @@ func _spawn_enemy(spawn: Dictionary) -> Node:
 		"enemy_patrol": scene_path = ENEMY_PATROL_SCENE
 		"enemy_flyer": scene_path = ENEMY_FLYER_SCENE
 		"enemy_chaser": scene_path = ENEMY_CHASER_SCENE
+		"enemy_hybrid_tyrant": scene_path = ENEMY_HYBRID_TYRANT_SCENE
 		_: return null
 	var enemy: Node = load(scene_path).instantiate()
 	return enemy

@@ -48,6 +48,8 @@ const OBJECTS := {
 	"4": "enemy_bomber",
 	"5": "enemy_tank",
 	"6": "enemy_sentinel",
+	# Asset 003, the Zone 1 villain. "7" is the glyph used in the level grids.
+	"7": "enemy_hybrid_tyrant",
 	"@": "powerup_shield",
 	"%": "powerup_speed",
 	"&": "powerup_magnet",

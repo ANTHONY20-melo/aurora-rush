@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://chybridtyrantzone1"]
+
+[ext_resource type="Script" path="res://src/entities/enemy_hybrid_tyrant.gd" id="1_tyrant"]
+
+[sub_resource type="RectangleShape2D" id="1_shape"]
+size = Vector2(40, 40)
+
+[node name="EnemyHybridTyrant" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 17
+script = ExtResource("1_tyrant")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+position = Vector2(0, 14)
+shape = SubResource("1_shape")
