@@ -209,7 +209,7 @@ func _create_shockwaves() -> void:
 	})
 
 func _update_shockwaves(delta: float) -> void:
-	for i in _shockwaves.size() - 1 down to 0:
+	for i in range(_shockwaves.size() - 1, -1, -1):
 		var sw := _shockwaves[i]
 		sw.distance += sw.speed * delta
 		sw.position.x += sw.direction * sw.speed * delta
@@ -315,10 +315,12 @@ func _create_death_effect() -> void:
 	particles.spread = 360.0
 	particles.gravity = Vector2(0, 200.0)
 	particles.color = Color(0.4, 0.8, 0.3, 1.0)
-	particles.color_ramp = Gradient.new()
-	var cr := particles.color_ramp
-	cr.set_offset(0.0, Color(0.6, 1.0, 0.4, 1.0))
-	cr.set_offset(1.0, Color(0.2, 0.5, 0.1, 0.0))
+	# Gradient.new() já nasce com 2 pontos (offsets 0.0 e 1.0). No Godot 4 a cor
+	# se define por índice com set_color(); set_offset() recebe só float.
+	var cr := Gradient.new()
+	cr.set_color(0, Color(0.6, 1.0, 0.4, 1.0))
+	cr.set_color(1, Color(0.2, 0.5, 0.1, 0.0))
+	particles.color_ramp = cr
 	get_tree().root.add_child(particles)
 	particles.global_position = global_position
 	particles.emitting = true
@@ -354,5 +356,10 @@ func _draw() -> void:
 	draw_rect(Rect2(-bar_width * 0.5, -120, bar_width, 8), Color(0.1, 0.1, 0.1, 0.8))
 	draw_rect(Rect2(-bar_width * 0.5, -120, bar_width * hp_ratio, 8), Color(0.9, 0.2, 0.2))
 	
-	# Phase indicator
-	draw_string(Vector2(-30, -140), "FASE %d" % phase, Color(1.0, 1.0, 1.0))
+	# Phase indicator: três pips, o preenchido marca a fase atual.
+	# Desenhado só com formas: draw_string() exige uma Font e o texto por cima
+	# do boss duplicava a info que a intro da fase já mostra no HUD.
+	for i in range(3):
+		var pip_rect := Rect2(-18 + i * 14, -138, 10, 6)
+		var pip_color := Color(1.0, 1.0, 1.0, 0.9) if i < phase else Color(1.0, 1.0, 1.0, 0.2)
+		draw_rect(pip_rect, pip_color)

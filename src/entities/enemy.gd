@@ -68,10 +68,10 @@ func _create_defeat_effect() -> void:
 	particles.spread = 45.0
 	particles.gravity = Vector2(0, 400)
 	particles.color = Color(0.9, 0.6, 0.2, 1.0)
-	particles.color_ramp = Gradient.new()
-	var cr := particles.color_ramp
-	cr.set_offset(0.0, Color(1.0, 0.8, 0.2, 1.0))
-	cr.set_offset(1.0, Color(0.9, 0.3, 0.1, 0.0))
+	var cr := Gradient.new()
+	cr.set_color(0, Color(1.0, 0.8, 0.2, 1.0))
+	cr.set_color(1, Color(0.9, 0.3, 0.1, 0.0))
+	particles.color_ramp = cr
 	get_tree().root.add_child(particles)
 	if particles.global_position == Vector2.ZERO:
 		particles.global_position = global_position
