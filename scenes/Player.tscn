@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://b0aurorarushplayer"]
+[gd_scene load_steps=4 format=3 uid="uid://kipanimatedplayer"]
 
 [ext_resource type="Script" path="res://src/player/player_controller.gd" id="1_controller"]
 
@@ -6,37 +6,83 @@
 offsets = PackedFloat32Array(0.0, 1.0)
 colors = PackedColorArray(0.62, 0.94, 1.0, 0.9, 0.36, 0.87, 1.0, 0.0)
 
+[sub_resource type="RectangleShape2D" id="2_hitbox"]
+size = Vector2(22, 30)
+
 [node name="Player" type="Node2D"]
 y_sort_enabled = true
 script = ExtResource("1_controller")
 
-[node name="Visual" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(-11, -15, 11, -15, 11, 15, -11, 15)
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("2_hitbox")
+
+[node name="Visual" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Body" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-11, -5, 11, -5, 11, 15, -11, 15)
 color = Color(0.36, 0.87, 1, 1)
 
+[node name="Head" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-9, -18, 9, -18, 9, -6, -9, -6)
+color = Color(0.9, 0.85, 0.75, 1)
+
+[node name="EyeLeft" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-8, -15, -6, -15, -6, -13, -8, -13)
+color = Color(0.1, 0.1, 0.1, 1)
+
+[node name="EyeRight" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(6, -15, 8, -15, 8, -13, 6, -13)
+color = Color(0.1, 0.1, 0.1, 1)
+
+[node name="PupilLeft" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-7.5, -14.5, -6.5, -14.5, -6.5, -13.5, -7.5, -13.5)
+color = Color(0.2, 0.5, 1, 1)
+
+[node name="PupilRight" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(6.5, -14.5, 7.5, -14.5, 7.5, -13.5, 6.5, -13.5)
+color = Color(0.2, 0.5, 1, 1)
+
+[node name="ArmLeft" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-11, -4, -16, -8, -16, 4, -11, 4)
+color = Color(0.36, 0.87, 1, 1)
+
+[node name="ArmRight" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(11, -4, 16, -8, 16, 4, 11, 4)
+color = Color(0.36, 0.87, 1, 1)
+
+[node name="LegLeft" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-7, 15, -7, 28, -3, 28, -3, 15)
+color = Color(0.2, 0.7, 0.95, 1)
+
+[node name="LegRight" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(3, 15, 3, 28, 7, 28, 7, 15)
+color = Color(0.2, 0.7, 0.95, 1)
+
 [node name="DashTrail" type="CPUParticles2D" parent="."]
-process_mode = 1
 emitting = false
+amount = 20
+lifetime = 0.3
 one_shot = false
-explosiveness = 0.0
-amount = 16
-lifetime = 0.25
-speed = 0.0
-speed_random = 0.0
-scale = 1.0
-scale_random = 0.5
+explosiveness = 0.5
+speed = 50.0
 gravity = Vector2(0, 0)
-linear_accel = Vector2(0, 0)
-radial_accel = 0.0
-tangential_accel = 0.0
-spread = 180.0
-initial_direction = Vector2(0, 0)
-angular_velocity = 0.0
-angular_velocity_random = 0.0
-color = Color(0.62, 0.94, 1.0, 0.8)
+spread = 45.0
+color = Color(0.36, 0.94, 1, 0.7)
 color_ramp = SubResource("1_color_ramp")
+scale = 0.6
+draw_order = 0
 
 [node name="Camera" type="Camera2D" parent="."]
 position_smoothing_enabled = true
 position_smoothing_speed = 7.0
-zoom = Vector2(1.0, 1.0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="HitFlash" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true
