@@ -25,7 +25,9 @@ jobs:
         run: |
           mkdir -p ~/godot
           cd ~/godot
-          curl -L -o godot.tar.xz https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.tar.xz
+          # Use the correct URL pattern for 4.3 stable
+          curl -L -o godot.tar.xz "https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.tar.xz"
+          file godot.tar.xz
           tar -xf godot.tar.xz
           chmod +x Godot_v4.3-stable_linux.x86_64
           echo "$HOME/godot" >> $GITHUB_PATH
@@ -33,7 +35,8 @@ jobs:
       - name: Install Web Export Template
         run: |
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable
-          curl -L -o web_templates.zip https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_web_export_templates.tpz
+          curl -L -o web_templates.zip "https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_web_export_templates.tpz"
+          file web_templates.zip
           unzip -o web_templates.zip -d ~/.local/share/godot/export_templates/4.3.stable
           ls -la ~/.local/share/godot/export_templates/4.3.stable/
 
