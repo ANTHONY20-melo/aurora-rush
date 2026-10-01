@@ -21,16 +21,18 @@ jobs:
         with:
           lfs: true
 
-      - name: Setup Godot 4.3
-        uses: Firebender/Godot@4.3
-        with:
-          version: "4.3"
-          mono: false
-          cache: true
+      - name: Download Godot 4.3
+        run: |
+          mkdir -p ~/godot
+          cd ~/godot
+          curl -L -o godot.tar.xz https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.tar.xz
+          tar -xf godot.tar.xz
+          chmod +x Godot_v4.3-stable_linux.x86_64
+          echo "$HOME/godot" >> $GITHUB_PATH
 
       - name: Install Web Export Template
         run: |
-          mkdir -v -p ~/.local/share/godot/export_templates/4.3.stable
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
           curl -L -o web_templates.zip https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_web_export_templates.tpz
           unzip -o web_templates.zip -d ~/.local/share/godot/export_templates/4.3.stable
           ls -la ~/.local/share/godot/export_templates/4.3.stable/
@@ -40,13 +42,6 @@ jobs:
           mkdir -p build/web
           godot --headless --verbose --export-release "Web" build/web/index.html
           ls -la build/web/
-
-      - name: Fix .wasm MIME type for GitHub Pages
-        run: |
-          # GitHub Pages serves .wasm as application/wasm but needs application/octet-stream for some browsers
-          # Create .htaccess equivalent via _headers file for Netlify/Cloudflare or just ensure proper build
-          echo "Build complete. Files:"
-          ls -lh build/web/
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
