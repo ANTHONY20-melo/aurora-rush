@@ -12,6 +12,6 @@
                     "zone01_03",
                     "zone01_04"
                 ],
-    "boss_level_id":  "zone01_boss",
+    "boss_level":  "zone01_boss",
     "requires_zone":  ""
 }
